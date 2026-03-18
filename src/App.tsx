@@ -20,6 +20,7 @@ export default function TestDesign() {
             Secondary
           </button>
           <button className="bg-success text-success-foreground px-4 py-2 rounded-md">
+            
             Succès
           </button>
           <button className="bg-danger text-danger-foreground px-4 py-2 rounded-md">
