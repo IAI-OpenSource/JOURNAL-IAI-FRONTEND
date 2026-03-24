@@ -1,11 +1,16 @@
-import {useState, type ChangeEvent, type FormEvent } from "react";
-import {useNavigate } from "react-router-dom";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { IoPersonOutline } from "react-icons/io5";
 
+/**
+ * Callback de authpage i ci  aussi.
+ */
+type InscriptionProps = {
+  onSwitch: () => void;
+};
 
 interface FormData {
         //sera surement changé
@@ -22,7 +27,7 @@ interface MessageState {
     text: string;
 }
 
-export function Inscription() {
+export function Inscription({ onSwitch }: InscriptionProps) {
     const [formData, setFormData] = useState<FormData>({
         nomUtilisateur: "",
         nom: "",
@@ -34,7 +39,6 @@ export function Inscription() {
     const [showToken, setShowToken] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<MessageState | null>(null);
-    const navigate = useNavigate();
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -50,14 +54,19 @@ export function Inscription() {
             const success = true;
             if (success) {
                 setMessage({ type: "success", text: "Inscription réussie !" });
-                setTimeout(() => navigate("/Connexion"), 2000);
+
+                // Ici on ne redirige plus avec navigate.
+                // Le changement Connexion/Inscription est maintenant géré
+                // par le parent via simple switch d'état.
+                setTimeout(() => onSwitch(), 2000);
             }
-        }catch(err) {
+        } catch (err) {
             setMessage({ type: "error", text: "Une erreur est survenue." });
-        }finally{
+        } finally {
             setLoading(false);
         }
     }
+
     return (
         <div className="w-full max-w-lg bg-white p-8 md:p-12 rounded-2xl shadow-sm border relative mx-auto">
             {/*icône*/}
@@ -145,7 +154,7 @@ export function Inscription() {
                 Vous avez déjà un compte ?{" "}
                 <button 
                 type="button"
-                onClick={() => navigate("/Connexion")} 
+                onClick={onSwitch} 
                 className="text-blue-600 font-semibold hover:underline"
                 >
                 Se Connecter
@@ -153,5 +162,5 @@ export function Inscription() {
             </p>
             </div>
         </div>
-        );
+    );
 }
