@@ -30,7 +30,7 @@ export function Connexion({ onSwitch }: ConnexionProps) {
           <IoPersonOutline size={80} />
         </CardTitle>
 
-        <CardTitle className="text-3xl">
+        <CardTitle className="text-3xl text-center">
           <h1>Se connecter</h1>
         </CardTitle>
       </CardHeader>
@@ -39,11 +39,12 @@ export function Connexion({ onSwitch }: ConnexionProps) {
         <form>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email || Nom d'utilisateur</Label>
+              {/* pour la lisibilité 'login' serait mieux */}
+              <Label htmlFor="email">Login</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="iaitogo@gmail.com"
+                id="login"//tu sais déjà
+                type="text" //j'ai mis ceci au lieu de email
+                placeholder="Entre votre email ou nom d'utilisateur"
                 required
               />
             </div>
