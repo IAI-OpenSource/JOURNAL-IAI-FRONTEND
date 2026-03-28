@@ -4,7 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-
 @tailwind utilities;
 
 @theme inline {
@@ -62,7 +61,6 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
 
-  
   --font-family-sans: "Poppins", ui-sans-serif, system-ui;
   --text-hero: 4rem;        
   --text-title: 2.25rem;    
