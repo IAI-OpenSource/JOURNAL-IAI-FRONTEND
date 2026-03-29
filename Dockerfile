@@ -1,8 +1,12 @@
 FROM node:20-alpine
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-RUN npm install framer-motion
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --frozen-lockfile
 COPY . .
+
 EXPOSE 5173
-CMD ["npm", "run", "dev", "--", "--host"]
+
+CMD ["pnpm", "run", "dev", "--", "--host"]
