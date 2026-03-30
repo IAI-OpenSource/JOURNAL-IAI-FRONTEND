@@ -1,11 +1,16 @@
-
-
-import LandingPage from "./pages/LandingPage";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./components/squelette/layout";
+import SearchPage from "./pages/SearchPage";
 
 export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-6">
-      <LandingPage />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          {/* La page qu'on veut tester */}
+          <Route path="/rechercher" element={<SearchPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
