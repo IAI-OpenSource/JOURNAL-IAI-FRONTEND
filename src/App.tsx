@@ -1,17 +1,18 @@
 
-
-import LandingPage from "./pages/LandingPage";
-import AdminPage from "./pages/AdminPage";
-import OnePost from "./components/OnePost";
+import {  Routes, Route } from "react-router-dom";
+import Layout from "./components/squelette/layout";
+import SearchPage from "./pages/SearchPage";
 import UserPage from "./pages/userPage";
 
 export default function App() {
   return (
-     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-6">
-      {/* < LandingPage/> */}
-       {/* < AdminPage/> */}
-       <UserPage/>
-       {/* <OnePost/> */}
-    </div>
-  );
+    
+      <Routes>
+        <Route element={<Layout />}>
+          {/* La page qu'on veut tester */}
+          <Route path="/rechercher" element={<SearchPage />} />
+          <Route path="/userPage" element={<UserPage />} />
+        </Route>
+      </Routes>
+    );
 }

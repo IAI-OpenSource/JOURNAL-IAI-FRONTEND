@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Connexion } from "./Connexion";
-import { Inscription } from "./Inscription";
+import { Connexion } from "../components/ui/Auth/Connexion";
+import { Inscription } from "../components/ui/Auth/Inscription";
 
 /**
  * le composant ci permet de centraliser l'état d'affichage de la page d'auth sans changer de page.
