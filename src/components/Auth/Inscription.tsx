@@ -16,7 +16,7 @@ import {
 
 
 
-import SpotlightCard from "@/components/SpotlightCard";
+import SpotlightCard from "@/components/ReactsLibsComponents/SpotlightCard";
 
 import {
   Dialog,
