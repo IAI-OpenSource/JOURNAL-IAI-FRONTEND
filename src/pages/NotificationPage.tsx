@@ -3,41 +3,30 @@ import { motion } from "framer-motion";
 import { Heart, MessageCircle, Calendar, Bell, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { NotifType, NotificationDTO } from "@/types/notifications";
 
 
-type NotifType = "like" | "comment" | "event";
-type TabKey    = "toutes" | "non_lues" | "lues";
-
-// si un champ change cote back, on update juste ici et dans adaptNotif()
-export interface NotificationDTO {
-  id: number;
-  type: NotifType;
-  auteur: string;      
-  avatarUrl?: string;  
-  message: string;      
-  date: string;         //  le back formate ou on formate ici
-  lue: boolean;
-}
+type TabKey = "toutes" | "non_lues" | "lues";
 
 interface Tab {
   key: TabKey;
   label: (notifs: NotificationDTO[]) => string;
 }
 
-//ici c pour centraliser les endpoints a bra,cher avec le back
+//ici c pour centraliser les endpoints a brancher avec le back
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 //Get
 const ENDPOINTS = {
   getAll:       () => `${API_BASE_URL}/notifications`,
 
-  //marquer une notif comme non lue 
+  //marquer une notif comme non lue
   markOneRead:  (id: number) => `${API_BASE_URL}/notifications/${id}/read`,
 
   //marque toutes les notifs comme lues
   markAllRead:  () => `${API_BASE_URL}/notifications/read-all`,
 };
 
-/*donnéés statiqeues comme sur la maquutees pour tester le rendu , j'ai utiliser les lettres 
+/*donnéés statiqeues comme sur la maquutees pour tester le rendu , j'ai utiliser les lettres
 pour faire les photos de profils */
 const MOCK_NOTIFS: NotificationDTO[] = [
   {
@@ -66,9 +55,9 @@ const MOCK_NOTIFS: NotificationDTO[] = [
   },
 ];
 
-//des que le back sera pret a etre branchezr on va tout decommenter 
+//des que le back sera pret a etre brancher on va tout decommenter
 // recuperer les notifs depuis l'API
-// on aura a  appeler dans le useEffect en dessous a la place du setNotifs(MOCK_NOTIFS)
+// on aura a appeler dans le useEffect en dessous a la place du setNotifs(MOCK_NOTIFS)
 async function fetchNotifications(): Promise<NotificationDTO[]> {
   // const res = await fetch(ENDPOINTS.getAll(), {
   //   headers: {
@@ -80,7 +69,7 @@ async function fetchNotifications(): Promise<NotificationDTO[]> {
   // const data = await res.json();
   // return data; // on aura a adapter si le backend wrappe dans data ou je sais pas comment ils nomment ca  { data: [...] } ou autre
 
-  // mock temporaire a virer quand on uara l'endpoint okay!
+  // mock temporaire a virer quand on aura l'endpoint okay!
   return Promise.resolve(MOCK_NOTIFS);
 }
 
@@ -121,6 +110,7 @@ function NotifIcon({ type }: { type: NotifType }) {
   if (type === "event")   return <Calendar      className="w-4 h-4 text-violet-400" />;
   return null;
 }
+
 function getInitiales(username: string): string {
   return username
     .split(/[.\-_]/)
@@ -128,8 +118,6 @@ function getInitiales(username: string): string {
     .join("")
     .slice(0, 2);
 }
-
-
 
 export default function NotificationPage() {
   const [notifs,    setNotifs]    = useState<NotificationDTO[]>([]);
@@ -164,7 +152,7 @@ export default function NotificationPage() {
     chargerNotifs();
   }, [chargerNotifs]);
 
-  // marque une notif comme lue cote front + appel qu'on fera  API back
+  // marque une notif comme lue cote front + appel qu'on fera API back
   const marquerLue = async (id: number) => {
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, lue: true } : n));
     await patchMarkOneRead(id);
@@ -175,7 +163,6 @@ export default function NotificationPage() {
     setNotifs(prev => prev.map(n => ({ ...n, lue: true })));
     await patchMarkAllRead();
   };
-
 
   return (
     <div className="flex flex-col h-full w-full px-8 py-8 max-w-3xl">
