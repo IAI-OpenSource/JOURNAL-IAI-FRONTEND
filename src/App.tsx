@@ -1,18 +1,26 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/squelette/layout";
+import LandingPage from "./pages/LandingPage";
 import SearchPage from "./pages/SearchPage";
+import NotificationPage from "./pages/NotificationPage";
 import UserPage from "./pages/UserPage";
 import { EventsPage } from "./pages/EventsPage";
 import ClubPage from "./pages/ClubPage";
+import CreatePublicationPage from "./pages/CreatePublicationPage";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/rechercher" element={<SearchPage />} />
-        <Route path="/userPage" element={<UserPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/clubs" element={<ClubPage />} />
+        <Route index element={<Navigate to="/accueil" replace />} />
+        <Route path="accueil" element={<LandingPage />} />
+        <Route path="rechercher" element={<SearchPage />} />
+        <Route path="notifications" element={<NotificationPage />} />
+        <Route path="profil" element={<UserPage />} />
+        <Route path="evenements" element={<EventsPage />} />
+        <Route path="clubs" element={<ClubPage />} />
+        <Route path="creer-publication" element={<CreatePublicationPage />} />
+        <Route path="*" element={<Navigate to="/accueil" replace />} />
       </Route>
     </Routes>
   );
