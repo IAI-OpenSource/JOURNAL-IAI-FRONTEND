@@ -1,0 +1,20 @@
+import axios from 'axios';
+
+const api = axios.create({
+    baseURL : 'http://api.iai-journal.test:81',
+    headers : {
+        'Content-Type' : 'aplication/json',
+    },
+
+});
+
+api.interceptors.request.use((config) =>  {
+    const token = localStorage.getItem('access_token');
+    if(token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+
+})
+
+export default api;
