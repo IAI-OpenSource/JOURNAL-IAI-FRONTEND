@@ -77,21 +77,21 @@ export default function AppSidebar() {
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? 'px-2' : ''}>
+            <SidebarMenu className={isCollapsed ? 'px-2 space-y-2' : ''}>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild className={isCollapsed ? 'justify-center px-2' : ''}>
                     <NavLink
                       to={item.url}
                       className={({ isActive }: { isActive: boolean }) =>
-                        `flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        `flex items-center ${isCollapsed ? 'justify-center px-2 py-2' : 'gap-3 px-4 py-2'} rounded-md text-sm font-medium transition-colors ${
                           isActive
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                         }`
                       }
                     >
-                      <item.icon className="w-4 h-4 shrink-0" />
+                      <item.icon className={`${isCollapsed ? '!w-8 !h-8' : 'w-4 h-4'} shrink-0`} />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -109,21 +109,21 @@ export default function AppSidebar() {
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? 'px-2' : ''}>
+            <SidebarMenu className={isCollapsed ? 'px-2 space-y-2' : ''}>
               {exploreItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild className={isCollapsed ? 'justify-center px-2' : ''}>
                     <NavLink
                       to={item.url}
                       className={({ isActive }: { isActive: boolean }) =>
-                        `flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        `flex items-center ${isCollapsed ? 'justify-center px-2 py-2' : 'gap-3 px-4 py-2'} rounded-md text-sm font-medium transition-colors ${
                           isActive
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                         }`
                       }
                     >
-                      <item.icon className="w-4 h-4 shrink-0" />
+                      <item.icon className={`${isCollapsed ? '!w-8 !h-8' : 'w-4 h-4'} shrink-0`} />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -141,8 +141,8 @@ export default function AppSidebar() {
               isCollapsed ? 'justify-center px-2' : ''
             }`}
           >
-            <NavLink to="/creer-publication">
-              <PlusSquare className="w-4 h-4" />
+            <NavLink to="/creer-publication" className={isCollapsed ? 'flex justify-center p-2' : 'flex items-center gap-2'}>
+              <PlusSquare className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} />
               {!isCollapsed && "Créer une publication"}
             </NavLink>
           </Button>
