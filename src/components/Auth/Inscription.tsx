@@ -25,6 +25,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+//import du service d'auth
+import { authService } from "@/services/authService";
+
 /**
  * Callback de authpage i ci  aussi.
  */
@@ -89,20 +92,27 @@ export function Inscription({ onSwitch }: InscriptionProps) {
 
         const finalData = {...formData, jetonIdentification : jetonIdentification}; 
         try {
-            //la route sera changée et le payload aussi surement
-            //const response = await registerUser(formData);
-            const success = true;
-            setIsModalOpen(false);
-            if (success) {
+            //appel à l'API d'inscription
+            const response = await authService.register({
+                email: finalData.email,
+                username: finalData.nomUtilisateur,
+                password: finalData.password,
+                last_name: finalData.nom,
+                first_name: finalData.prenoms,
+                jeton: finalData.jetonIdentification,
+            });
+            if (response.success) {
                 setMessage({ type: "success", text: "Inscription réussie !" });
                 console.log("Données envoyées:", finalData);
                 // Ici on ne redirige plus avec navigate.
                 // Le changement Connexion/Inscription est maintenant géré
                 // par le parent via simple switch d'état.
                 setTimeout(() => onSwitch(), 2000);
+            } else {
+                setMessage({ type: "error", text: response.message || "Erreur lors de l'inscription" });
             }
-        } catch (err) {
-            setMessage({ type: "error", text: "Une erreur est survenue." });
+        } catch (err: any) {
+            setMessage({ type: "error", text: err.message || "Une erreur est survenue." });
         } finally {
             setLoading(false);
         }
