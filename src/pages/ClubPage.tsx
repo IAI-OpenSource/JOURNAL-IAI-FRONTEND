@@ -3,123 +3,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users } from "lucide-react";
 import type { ClubDTO, MembreComiteDTO, RoleClub } from "@/types/club";
+import { clubService } from "@/services/clubService";
+import type { ClubResponse } from "@/types/club";
 
+// transforme ClubResponse du back en ClubDTO utilise par le front
 
-//configs pour l'api qui viendra du back
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
-
-const ENDPOINTS = {
-  // get : tous les clubs + statut suivi de l'user connecte
-  getAll:         () => `${API_BASE_URL}/clubs`,
-
-  // get : membres du comité d'un club (president, vice, chef)
-  /*appele separé pour avoir les avatars en temps reel ou je sais pas trop , on pourra ajutser
-  lorque on devra faire la connexion*/ 
-  getComite:      (id: number) => `${API_BASE_URL}/clubs/${id}/membres/roles`,
-
-  // get: nb de membres a jour en temps reel
-  getNbMembres:   (id: number) => `${API_BASE_URL}/clubs/${id}/membres/count`,
-
-  // post: suivre un club
-  suivre:         (id: number) => `${API_BASE_URL}/clubs/${id}/follow`,
-
-  // delete: ne plus suivre
-  desabonner:     (id: number) => `${API_BASE_URL}/clubs/${id}/unfollow`,
-};
-
-//donnes statiques quon va retirer apres
-
-const MOCK_CLUBS: ClubDTO[] = [
-  {
-    id: 1,
-    nom: "Club Informatique",
-    description: "Communauté des passionnés de code et de technologie.",
-    nbMembres: 156,
-    suivi: true,
-    role: "president",
-  },
-  {
-    id: 2,
-    nom: "Bureau BDE",
-    description: "Le bureau des étudiants organise tous les événements de l'IAI.",
-    nbMembres: 43,
-    suivi: true,
-    role: "president",
-  },
-  {
-    id: 3,
-    nom: "Club Photo",
-    description: "Capture et partage des moments de la vie étudiante.",
-    nbMembres: 28,
-    suivi: false,
-    role: "chef_de_club",
-  },
-];
-
-const MOCK_COMITES: Record<number, MembreComiteDTO[]> = {
-  1: [
-    { id: 1, username: "kofi.mensah",  role: "president",      avatarUrl: undefined },
-    { id: 2, username: "amina.diallo", role: "vice_president",  avatarUrl: undefined },
-  ],
-  2: [
-    { id: 3, username: "marie.kouassi", role: "president",     avatarUrl: undefined },
-  ],
-  3: [
-    { id: 4, username: "jean.akoto",    role: "chef_de_club",  avatarUrl: undefined },
-  ],
-};
-
-//on aura a decommneter quand le back sera up
-
-async function fetchClubs(): Promise<ClubDTO[]> {
-  // const res = await fetch(ENDPOINTS.getAll(), {
-  //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  // });
-  // if (!res.ok) throw new Error("Erreur recup clubs");
-  // return res.json();
-
-  return Promise.resolve(MOCK_CLUBS);
+function mapClubResponseToDTO(club: ClubResponse): ClubDTO {
+  return {
+    id: club.id,
+    nom: club.name,
+    description: club.description ?? "",
+    nbMembres: club.member_count,
+    avatarUrl: club.logo_url ?? undefined,
+    suivi: false,   // le back n'a pas encore l'endpoint follow 
+    role: null,     // idem pour le role de l'user dans le club
+  };
 }
 
 // appele pour chaque club au montage qui va recuperer president, vice, chef avec leurs avatars pour les display dans la card
-async function fetchComite(clubId: number): Promise<MembreComiteDTO[]> {
-  // const res = await fetch(ENDPOINTS.getComite(clubId), {
-  //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  // });
-  // if (!res.ok) throw new Error("Erreur recup comite");
-  // return res.json();
-
-  return Promise.resolve(MOCK_COMITES[clubId] ?? []);
+async function fetchComite(clubId: string): Promise<MembreComiteDTO[]> {
+  // va justeretourner un tableau vide pour l'instant
+  // brancher GET /clubs/:id/membres/roles 
+  return [];
 }
 
-// appele pour avoir le nb de membres a jour en temps reel
-async function fetchNbMembres(clubId: number): Promise<number> {
-  // const res = await fetch(ENDPOINTS.getNbMembres(clubId), {
-  //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  // });
-  // if (!res.ok) throw new Error("Erreur recup nb membres");
-  // const data = await res.json();
-  // return data.count; // selon ce que le back va  renvoyer
-
-  return Promise.resolve(MOCK_CLUBS.find(c => c.id === clubId)?.nbMembres ?? 0);
+//  follow/unfollow  implémentee avec clubService
+async function postSuivre(id: string): Promise<void> {
+  await clubService.followClub(id);
 }
 
-async function postSuivre(id: number): Promise<void> {
-  // await fetch(ENDPOINTS.suivre(id), {
-  //   method: "POST",
-  //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  // });
-
-  console.log(`[API stub] POST ${ENDPOINTS.suivre(id)}`);
-}
-
-async function deleteSuivre(id: number): Promise<void> {
-  // await fetch(ENDPOINTS.desabonner(id), {
-  //   method: "DELETE",
-  //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  // });
-
-  console.log(`[API stub] DELETE ${ENDPOINTS.desabonner(id)}`);
+async function deleteSuivre(id: string): Promise<void> {
+  await clubService.unfollowClub(id);
 }
 
 //ca c juste pour les profils hein vu que j'ai pas de photos je mets des lettres 
@@ -128,12 +42,11 @@ function getInitiales(nom: string): string {
 }
 
 function getLabelRole(role: RoleClub): string | null {
-  if (role === "president")     return "Président";
+  if (role === "president")      return "Président";
   if (role === "vice_president") return "Vice-Président";
-  if (role === "chef_de_club")  return "Chef de club";
+  if (role === "chef_de_club")   return "Chef de club";
   return null;
 }
-
 
 function ClubCard({
   club,
@@ -142,7 +55,7 @@ function ClubCard({
 }: {
   club: ClubDTO;
   comite: MembreComiteDTO[];
-  onToggleSuivi: (id: number) => void;
+  onToggleSuivi: (id: string) => void;
 }) {
   const labelRole = getLabelRole(club.role);
 
@@ -195,14 +108,12 @@ function ClubCard({
       {labelRole && comite.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <span className="text-xs font-semibold text-foreground">Comité</span>
-
           <div className="flex flex-wrap gap-1.5">
             {comite.map(membre => (
               <div
                 key={membre.id}
                 className="flex items-center gap-1.5 bg-background border border-border rounded-md px-2 py-1"
               >
-                {/* lavatar du membre du comité viendra de l'API coté back pour qu'au cas ou ca change ..... */}
                 <Avatar className="w-4 h-4 shrink-0">
                   {membre.avatarUrl && <AvatarImage src={membre.avatarUrl} alt={membre.username} />}
                   <AvatarFallback className="bg-violet-100 text-violet-700 text-[8px] font-bold">
@@ -223,7 +134,7 @@ function ClubCard({
 
 export default function ClubPage() {
   const [clubs,     setClubs]     = useState<ClubDTO[]>([]);
-  const [comites,   setComites]   = useState<Record<number, MembreComiteDTO[]>>({});
+  const [comites,   setComites]   = useState<Record<string, MembreComiteDTO[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [erreur,    setErreur]    = useState<string | null>(null);
 
@@ -231,25 +142,21 @@ export default function ClubPage() {
     try {
       setIsLoading(true);
       setErreur(null);
-      const data = await fetchClubs();
+
+      // appel réel de l'endpoint  GET /clubs/?page=1&page_size=50&is_active=false
+      // is_active=false pour voir tous les clubs y compris inactifs
+      const response = await clubService.getAllClubs(1, 50, false);
+      const data = response.clubs.map(mapClubResponseToDTO);
       setClubs(data);
 
-      // pour chaque club on charge le comité + nb membres en temps reel en parallele
-      const [comitesData, nbMembresData] = await Promise.all([
-        Promise.all(data.map(c => fetchComite(c.id).then(m => ({ id: c.id, membres: m })))),
-        Promise.all(data.map(c => fetchNbMembres(c.id).then(n => ({ id: c.id, count: n })))),
-      ]);
-
-      // on met a jour le nb de membres de chaque club avec la valeur temps reel
-      setClubs(prev =>
-        prev.map(c => {
-          const nb = nbMembresData.find(x => x.id === c.id);
-          return nb ? { ...c, nbMembres: nb.count } : c;
-        })
+      // pour chaque club on charge le comité en parallele
+      // fetchComite retourne [] pour l'instant, on va garder la structure
+      const comitesData = await Promise.all(
+        data.map(c => fetchComite(c.id).then(m => ({ id: c.id, membres: m })))
       );
 
-      // stocke les comités par id de club
-      const comitesMap: Record<number, MembreComiteDTO[]> = {};
+      // on stocke les comités par id de club
+      const comitesMap: Record<string, MembreComiteDTO[]> = {};
       comitesData.forEach(({ id, membres }) => { comitesMap[id] = membres; });
       setComites(comitesMap);
 
@@ -264,7 +171,8 @@ export default function ClubPage() {
     chargerClubs();
   }, [chargerClubs]);
 
-  const handleToggleSuivi = async (id: number) => {
+  // optimistic update — front se met a jour direct, on appelle le back derriere
+  const handleToggleSuivi = async (id: string) => {
     const club = clubs.find(c => c.id === id);
     if (!club) return;
 
