@@ -143,7 +143,7 @@ export default function ClubPage() {
       setIsLoading(true);
       setErreur(null);
 
-      // appel réel de l'endpoint — GET /clubs/?page=1&page_size=50&is_active=false
+      // appel réel de l'endpoint  GET /clubs/?page=1&page_size=50&is_active=false
       // is_active=false pour voir tous les clubs y compris inactifs
       const response = await clubService.getAllClubs(1, 50, false);
       const data = response.clubs.map(mapClubResponseToDTO);
