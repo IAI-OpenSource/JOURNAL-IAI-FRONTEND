@@ -1,10 +1,13 @@
 import { MapPin, Calendar, Edit3, Camera } from "lucide-react";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react"; 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import OnePost from "@/components/OnePost";
+import { userService } from "@/services/userService";
+import type { ReadUser } from "../types/user";
+
 //donnees que doit contenir un profile
 interface Profile {
   id: string;
@@ -16,19 +19,6 @@ interface Profile {
   localisation: string | null;
   dateCreation: string;
 }
-
-//exemple de profile
-
-const userProfile: Profile = {
-  id: "1",
-  username: "freeze",
-  role: "chefs de club",
-  bio: "Etudiant en informatique a l'IAI-TOGO, passioné de l'argent et de ma go",
-  avatarUrl: "",
-  bannerUrl: "https://tse4.mm.bing.net/th/id/OIP.6EXvpjHaaT-bsK15aGUPxgHaFj?rs=1&pid=ImgDetMain&o=7&rm=3",
-  localisation: "Lomé-TOGO",
-  dateCreation: "Mars 2026",
-};
 
 //les post de ce profil (normalement on pouvait tester avec tout le filtre lui même va se charger de faire le tri mais bomm)
 const All_post = [
@@ -59,22 +49,51 @@ const All_post = [
 ];
 
 export default function AdminPage() {
+  //état pour le profil 
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   {/*le filtr mentionner plus haut */}
-  const adminPosts = All_post.filter((p) => p.auteur === userProfile.username);
+  //les posts seront filtrés plus tard, pour l'instant on garde le mock
+  const [adminPosts] = useState(All_post.filter((p) => p.auteur === "freeze")); // temporaire
 
   //gestion des apercus image  ,avatar , baniieres  et erreur de chargement
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(userProfile.avatarUrl || null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(userProfile.bannerUrl || null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [bannerError, setBannerError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
+  //appel API pour récupérer le profil de l'admin
+  useEffect(() => {
+    userService.getCurrentUser()
+      .then((data: ReadUser) => {
+        const profile: Profile = {
+          id: data.id,
+          username: data.username,
+          role: data.role === "CLUB_LEADER" ? "chefs de club" : "etudiant",
+          bio: data.bio || "",
+          avatarUrl: data.avatar_url || "",
+          bannerUrl: "",
+          localisation: null,
+          dateCreation: new Date(data.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+        };
+        setUserProfile(profile);
+        setAvatarPreview(profile.avatarUrl);
+        // Ici on pourrait aussi charger les posts réels de l'utilisateur via un endpoint
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
   //memorisation des couleurs
   const userColorHex = useMemo(() => {
+    if (!userProfile) return '#3b82f6';
     const colors = ['#3b82f6', '#a855f7', '#ef4444', '#6366f1', '#f97316', '#22c55e', '#8b5cf6'];
     const hash = userProfile.username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0;
     return colors[hash % colors.length];
-  }, [userProfile.username]);
+  }, [userProfile?.username]);
 
   // Gradient style GlassIcons pour l'avatar du profil 
   const colorGradient = useMemo(() => {
@@ -119,6 +138,11 @@ export default function AdminPage() {
       reader.readAsDataURL(file);
     }
   };
+
+  // Changement : affichage du chargement
+  if (loading) return <div className="max-w-3xl mx-auto p-10 text-center">Chargement du profil admin...</div>;
+  if (error) return <div className="max-w-3xl mx-auto p-10 text-red-500">Erreur : {error}</div>;
+  if (!userProfile) return null;
 
   return (
     
@@ -253,7 +277,7 @@ export default function AdminPage() {
           </p>
           <div className="flex gap-5 text-[11px] text-neutral-text-muted font-medium">
             <span className="flex items-center gap-1.5">
-              <MapPin size={13} className="text-primary/60" /> {userProfile.localisation}
+              <MapPin size={13} className="text-primary/60" /> {userProfile.localisation || "Non renseignée"}
             </span>
             <span className="flex items-center gap-1.5">
               <Calendar size={13} className="text-primary/60" /> Inscrit en {userProfile.dateCreation}

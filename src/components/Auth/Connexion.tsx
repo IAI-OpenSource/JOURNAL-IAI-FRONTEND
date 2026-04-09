@@ -16,6 +16,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/Auth";
 import { toast } from "sonner";
@@ -28,12 +29,15 @@ const loginSchema = z.object({
   password: z.string().min(8, "Le mot de passe doit faire au moins 8 caractères"),
 });
 
+
+
 type ConnexionProps = {
   onSwitch: () => void;
 };
 
 export function Connexion({ onSwitch }: ConnexionProps) {
   const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -94,7 +98,6 @@ export function Connexion({ onSwitch }: ConnexionProps) {
         setOtp("");
       }
     } catch (err: any) {
-
       let errorMsg = err.response?.data?.error || "Code invalide ou expiré";
       if (typeof errorMsg === 'string') {
         errorMsg = errorMsg.replace(/OTP/gi, "code d'identification");
@@ -108,7 +111,6 @@ export function Connexion({ onSwitch }: ConnexionProps) {
 
   return (
     <div className="w-full flex justify-center items-center">
-
       {step === 1 && (
         <Card className="w-full max-w-sm border-none shadow-none">
           <CardHeader>
@@ -233,5 +235,6 @@ export function Connexion({ onSwitch }: ConnexionProps) {
         </div>
       )}
     </div>
+
   );
 }

@@ -19,6 +19,7 @@ import {
 
 
 
+
 type InscriptionProps = {
   onSwitch: () => void;
 };
@@ -77,6 +78,8 @@ export function Inscription({ onSwitch }: InscriptionProps) {
         email: formData.email,
         username: formData.nomUtilisateur,
         password: formData.password,
+        last_name: formData.nom,
+        first_name: formData.prenoms,
         jeton: jetonIdentification,
       });
 
