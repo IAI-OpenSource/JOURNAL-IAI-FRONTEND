@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
-import { IoPersonOutline } from "react-icons/io5";
-
+import { toast } from "sonner";
+import { authService } from "../../services/Auth";
+import { z } from "zod"; 
+import { GrValidate } from "react-icons/gr";
+import { MdOutlinePersonOutline } from "react-icons/md";
 
 import {
   Card,
@@ -16,248 +19,225 @@ import {
 
 
 
-import SpotlightCard from "@/components/ReactsLibsComponents/SpotlightCard";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-/**
- * Callback de authpage i ci  aussi.
- */
-
 type InscriptionProps = {
   onSwitch: () => void;
 };
 
 interface FormData {
-        //update, version finale
-        nomUtilisateur: string;
-        nom: string;
-        prenoms: string;
-        email: string;
-        password: string;
-        jetonIdentification: string;
-    }
-
-
-interface MessageState {
-    type: "success" | "error";
-    text: string;
+  nomUtilisateur: string;
+  nom: string;
+  prenoms: string;
+  email: string;
+  password: string;
 }
 
 
 
+// Schéma de validation pour le mot de passe
+const passwordSchema = z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères");
+
 export function Inscription({ onSwitch }: InscriptionProps) {
-    const [formData, setFormData] = useState<FormData>({
-        nomUtilisateur: "",
-        nom: "",
-        prenoms: "",
-        email: "",
-        password: "",
-        jetonIdentification: "",
-    });
+  const [formData, setFormData] = useState<FormData>({
+    nomUtilisateur: "",
+    nom: "",
+    prenoms: "",
+    email: "",
+    password: "",
+  });
 
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [jetonIdentification, setJetonIdentification] = useState("");
+  const [step, setStep] = useState(1);
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<MessageState | null>(null);
-    const [showPassword, setShowPassword] = useState(false);
-    const [jetonIdentification, setJetonIdentification] = useState("");
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleOpenModal = (e: FormEvent) => {
+    e.preventDefault();
+    
+    // Validation Zod du mot de passe
+    const validation = passwordSchema.safeParse(formData.password);
+    if (!validation.success) {
+      toast.error(validation.error.issues[0].message);
+      return;
     }
+    
+    setStep(2);
+  };
 
+  const handleFinalSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
+    try {
 
-    const handleOpenModal = (e: FormEvent) => {
-        e.preventDefault();
-        setIsModalOpen(true);
+      const response = await authService.register({
+        email: formData.email,
+        username: formData.nomUtilisateur,
+        password: formData.password,
+        jeton: jetonIdentification,
+      });
+
+      if (response.ok) {
+        const successMsg = response.result?.message || "Inscription réussie !";
+        toast.success(successMsg);
+        
+        setStep(1);
+        
+       
+        setTimeout(() => onSwitch(), 2000);
+      } else {
+        const errorMsg = response.error || "Une erreur est survenue.";
+        toast.error(errorMsg);
+      }
+    } catch (err: any) {
+      const errorDetail = 
+        err.response?.data?.error || 
+        err.response?.data?.detail?.[0]?.msg || 
+        "Impossible de joindre le serveur.";
+        
+      toast.error(errorDetail);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const handleFinalSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage(null);
-        setIsModalOpen(false);
-
-        const finalData = {...formData, jetonIdentification : jetonIdentification}; 
-        try {
-            //la route sera changée et le payload aussi surement
-            //const response = await registerUser(formData);
-            const success = true;
-            setIsModalOpen(false);
-            if (success) {
-                setMessage({ type: "success", text: "Inscription réussie !" });
-                console.log("Données envoyées:", finalData);
-                // Ici on ne redirige plus avec navigate.
-                // Le changement Connexion/Inscription est maintenant géré
-                // par le parent via simple switch d'état.
-                setTimeout(() => onSwitch(), 2000);
-            }
-        } catch (err) {
-            setMessage({ type: "error", text: "Une erreur est survenue." });
-        } finally {
-            setLoading(false);
-        }
-    }
-
-
-    return (
-        <>
+  return (
+    <div className="w-full flex justify-center items-center">
+      {step === 1 && (
         <Card className="w-full max-w-sm border-none shadow-none">
-            <CardHeader>
-                <CardTitle className="flex justify-center w-full">
-                    {/*icône*/}
-                    <IoPersonOutline size={80} />
-                </CardTitle>
-                <CardTitle className="text-3xl text-center">
-                    <h1>S'inscrire</h1>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleOpenModal} className="space-y-5">
-                    {message && (
-                    <div className={`p-3 text-sm rounded-md ${message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                        {message.text}
-                    </div>
-                    )}
+          <CardHeader>
+            <CardTitle className="flex justify-center w-full">
+              <MdOutlinePersonOutline size={80} />
+            </CardTitle>
+            <CardTitle className="text-3xl text-center font-bold">
+              S'inscrire
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form id="register-form" onSubmit={handleOpenModal} className="space-y-4">
+              <div className="flex flex-col gap-4">
+                <div className="grid gap-1">
+                  <Label htmlFor="nomUtilisateur">Nom d'utilisateur</Label>
+                  <Input
+                    id="nomUtilisateur"
+                    name="nomUtilisateur"
+                    value={formData.nomUtilisateur}
+                    onChange={handleChange}
+                    className="h-11"
+                    placeholder="Ex: iaitogo"
+                    required
+                  />
+                </div>
 
+                <div className="grid gap-1">
+                  <Label htmlFor="nom">Nom</Label>
+                  <Input id="nom" name="nom" value={formData.nom} onChange={handleChange} className="h-11" placeholder="Votre nom" required />
+                </div>
 
-                    {/*Nom utilisateur*/}
-                    <div className="flex flex-col gap-6">
-                        <div className="grid gap-2">        
-                        <Label htmlFor="nomUtilisateur" className="text-gray-600">Nom d'utilisateur</Label>
-                        <Input 
-                            id="nomUtilisateur" 
-                            name="nomUtilisateur" 
-                            value={formData.nomUtilisateur} 
-                            onChange={handleChange} 
-                            className="border-gray-200 focus-visible:ring-blue-400 h-11" 
-                            placeholder="Ex: iaitogo" 
-                            required 
-                        />
-                        </div>
+                <div className="grid gap-1">
+                  <Label htmlFor="prenoms">Prénoms</Label>
+                  <Input id="prenoms" name="prenoms" value={formData.prenoms} onChange={handleChange} className="h-11" placeholder="Vos prénoms" required />
+                </div>
 
+                <div className="grid gap-1">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} className="h-11" placeholder="votre@email.com" required />
+                </div>
 
-                        {/*Nom prénoms*/}
-                        <div className="grid gap-2">
-                            <Label htmlFor="nom" className="text-gray-600">Nom</Label>
-                            <Input id="nom" name="nom" value={formData.nom} onChange={handleChange} className="border-gray-200 h-11" placeholder="Nom" required />
-                        </div>
-
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="prenoms" className="text-gray-600">Prénoms</Label>
-                            <Input id="prenoms" name="prenoms" value={formData.prenoms} onChange={handleChange} className="border-gray-200 h-11" placeholder="Prénoms" required />
-                        </div>
-
-
-                        {/*Email */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="email" 
-                            className="text-gray-600">Email</Label>
-                            <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} className="border-gray-200 h-11" placeholder="Ex : agbonon667@email.com" required />
-                        </div>
-
-
-                        {/*Mot de passe*/}
-                        <div className="grid gap-2">
-                            <Label htmlFor="password" className="text-gray-600">Mot de passe</Label>
-                            <div className="relative">
-                                <Input 
-                                id="password" 
-                                name="password" 
-                                type={showPassword ? "text" : "password"} 
-                                value={formData.password} 
-                                onChange={handleChange} 
-                                className="border-gray-200 pr-10 h-11" 
-                                placeholder="Votre mot de passe" 
-                                required 
-                                />
-                            <button 
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                            {showPassword ? <IoMdEyeOff size={20} /> : <IoMdEye size={20} />}
-                            </button>
-                            </div>
-                        </div>
-
-
-                        <Button 
-                        type="submit" 
-                        disabled={loading}
-                        className="w-full bg-[#6366f1] hover:bg-[#4f46e5] text-white font-medium h-12 rounded-xl mt-4 transition-all"
-                        >
-                        {loading ? "Chargement..." : "S'inscrire"}
-                        </Button>
-                    </div>
-                
-                </form>
-
-                <CardFooter className="flex-col gap-2">
-                {/*Compte existant*/}
-                <p className="text-center text-sm text-gray-500 mt-6">
-                    Vous avez déjà un compte ?{" "}
-                    <button 
-                    type="button"
-                    onClick={onSwitch} 
-                    className="text-blue-600 font-semibold hover:underline"
+                <div className="grid gap-1">
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="pr-10 h-11"
+                      placeholder="min 8 caractères"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                     >
-                    Se Connecter
+                      {showPassword ? <IoMdEyeOff size={20} /> : <IoMdEye size={20} />}
                     </button>
-                </p>
-            </CardFooter>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </CardContent>
 
-        </CardContent>
+          <CardFooter className="flex-col gap-4 pt-2">
+            <Button
+              form="register-form"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 h-11 text-white flex items-center justify-center font-medium"
+            >
+              Créer un compte
+            </Button>
+            <p className="text-center text-sm text-gray-600">
+              Vous avez déjà un compte ?{" "}
+              <button
+                type="button"
+                onClick={onSwitch}
+                className="text-blue-600 font-semibold hover:underline"
+              >
+                Se Connecter
+              </button>
+            </p>
+          </CardFooter>
         </Card>
+      )}
 
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="p-0 overflow-hidden border-none max-w-md bg-transparent shadow-none">
-
-          {/*Spotlight Card*/}
-          <SpotlightCard className="p-8 bg-white border rounded-2xl shadow-2xl" spotlightColor="rgba(240, 237, 237, 0.94)">
-            <DialogHeader className="mb-6">
-              <DialogTitle className="text-xl font-bold text-center text-[#6366f1]">Validation de l'inscription</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              <p className="text-sm text-gray-600 text-center px-2">
-                Un jeton d'identification valide est nécessaire pour confirmer la création de votre compte.
+      {step === 2 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-[400px] shadow-2xl border-none bg-white animate-in fade-in zoom-in duration-300">
+            <CardHeader className="space-y-4 flex flex-col items-center">
+              <CardTitle className="text-2xl font-bold text-center text-green-600"><GrValidate /></CardTitle>
+              <p className="text-xs text-muted-foreground text-center px-6">
+                Un jeton d'identification est nécessaire pour confirmer la création de votre compte.
               </p>
-              
-              <div className="space-y-2 text-left">
+            </CardHeader>
+
+            <CardContent className="flex flex-col items-center gap-6">
+              <div className="w-full space-y-2 text-left">
                 <Label htmlFor="jeton" className="text-gray-700">Votre Jeton</Label>
-                <Input 
-                  id="jeton" 
-                  placeholder="Saisir le jeton reçu" 
-                  value={jetonIdentification} 
-                  onChange={(e) => setJetonIdentification(e.target.value.replace(/\D/g, ""))}
-                  className="h-12 text-center bg-white text-lg tracking-widest font-mono border-gray-700 focus-visible:ring-blue-400"
-                  autoFocus 
+                <Input
+                  id="jeton"
+                  placeholder="Saisir le jeton"
+                  value={jetonIdentification}
+                  onChange={(e) => setJetonIdentification(e.target.value)}
+                  className="h-12 text-center bg-white text-lg tracking-widest font-mono focus-visible:ring-blue-400"
+                  autoFocus
                 />
               </div>
-              <Button onClick={handleFinalSubmit} disabled={loading || !jetonIdentification} className="w-full bg-[#6366f1] hover:bg-[#4f46e5] text-white h-12 rounded-xl text-lg font-semibold transition-all">
+            </CardContent>
+
+            <CardFooter className="flex flex-col gap-4">
+              <Button
+                onClick={handleFinalSubmit}
+                disabled={loading || !jetonIdentification}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 h-11 text-white text-md font-semibold"
+              >
                 {loading ? "Validation en cours..." : "Confirmer l'inscription"}
               </Button>
-              <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="w-full text-xs text-gray-400 hover:text-gray-600 hover:underline"
+              <button
+                onClick={() => setStep(1)}
+                className="text-sm text-muted-foreground hover:underline"
               >
-                Annuler
+                ← Retour à l'inscription
               </button>
-            </div>
-          </SpotlightCard>
-        </DialogContent>
-      </Dialog>
-    </>
-    );
+            </CardFooter>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -7,11 +7,11 @@ import UserPage from "./pages/UserPage";
 import { EventsPage } from "./pages/EventsPage";
 import ClubPage from "./pages/ClubPage";
 import CreatePublicationPage from "./pages/CreatePublicationPage";
-
+import { AuthPage } from "./pages/AuthPage";
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route >
         <Route index element={<Navigate to="/accueil" replace />} />
         <Route path="accueil" element={<LandingPage />} />
         <Route path="rechercher" element={<SearchPage />} />
@@ -19,6 +19,7 @@ export default function App() {
         <Route path="profil" element={<UserPage />} />
         <Route path="evenements" element={<EventsPage />} />
         <Route path="clubs" element={<ClubPage />} />
+        <Route path="authPage" element={<AuthPage />} />
         <Route path="creer-publication" element={<CreatePublicationPage />} />
         <Route path="*" element={<Navigate to="/accueil" replace />} />
       </Route>
