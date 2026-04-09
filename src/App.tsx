@@ -7,6 +7,7 @@ import UserPage from "./pages/UserPage";
 import { EventsPage } from "./pages/EventsPage";
 import ClubPage from "./pages/ClubPage";
 import CreatePublicationPage from "./pages/CreatePublicationPage";
+
 import AdminPage from "./pages/AdminPage";
 import { AuthPage } from "./pages/AuthPage";
 
