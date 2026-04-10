@@ -14,11 +14,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://api.iai-journal.test:81",
+        target: "http://localhost:8000",   
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
-        // Pour que les cookies soient transmis
-        cookieDomainRewrite: "",
+        cookieDomainRewrite: "localhost",   
       },
     },
   },

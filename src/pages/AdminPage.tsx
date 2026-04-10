@@ -8,16 +8,18 @@ import OnePost from "@/components/OnePost";
 import { userService } from "@/services/userService";
 import type { ReadUser } from "../types/user";
 
-//donnees que doit contenir un profile
-interface Profile {
-  id: string;
-  username: string;
-  role: "chefs de club" | "moderateur" | "etudiant";
-  bio: string;
-  avatarUrl: string;
-  bannerUrl: string;
-  localisation: string | null;
-  dateCreation: string;
+// Fonction pour afficher un rôle lisible
+function getLabelRole(role: ReadUser["role"]): string {
+  const map: Record<ReadUser["role"], string> = {
+    STUDENT: "Étudiant",
+    CLUB_LEADER: "Chef de club",
+    DELEGATE: "Délégué",
+    MODERATOR: "Modérateur",
+    ADMIN: "Administrateur",
+    SPECTATOR: "Spectateur",
+    EXECUTIVE_MEMBER: "Membre exécutif",
+  };
+  return map[role] ?? role;
 }
 
 //les post de ce profil (normalement on pouvait tester avec tout le filtre lui même va se charger de faire le tri mais bomm)
@@ -50,11 +52,10 @@ const All_post = [
 
 export default function AdminPage() {
   //état pour le profil 
-  const [userProfile, setUserProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<ReadUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  {/*le filtr mentionner plus haut */}
   //les posts seront filtrés plus tard, pour l'instant on garde le mock
   const [adminPosts] = useState(All_post.filter((p) => p.auteur === "freeze")); // temporaire
 
@@ -69,18 +70,8 @@ export default function AdminPage() {
   useEffect(() => {
     userService.getCurrentUser()
       .then((data: ReadUser) => {
-        const profile: Profile = {
-          id: data.id,
-          username: data.username,
-          role: data.role === "CLUB_LEADER" ? "chefs de club" : "etudiant",
-          bio: data.bio || "",
-          avatarUrl: data.avatar_url || "",
-          bannerUrl: "",
-          localisation: null,
-          dateCreation: new Date(data.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
-        };
-        setUserProfile(profile);
-        setAvatarPreview(profile.avatarUrl);
+        setProfile(data);
+        setAvatarPreview(data.avatar_url || "");
         // Ici on pourrait aussi charger les posts réels de l'utilisateur via un endpoint
       })
       .catch(err => setError(err.message))
@@ -89,11 +80,11 @@ export default function AdminPage() {
 
   //memorisation des couleurs
   const userColorHex = useMemo(() => {
-    if (!userProfile) return '#3b82f6';
+    if (!profile) return '#3b82f6';
     const colors = ['#3b82f6', '#a855f7', '#ef4444', '#6366f1', '#f97316', '#22c55e', '#8b5cf6'];
-    const hash = userProfile.username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0;
+    const hash = profile.username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0;
     return colors[hash % colors.length];
-  }, [userProfile?.username]);
+  }, [profile?.username]);
 
   // Gradient style GlassIcons pour l'avatar du profil 
   const colorGradient = useMemo(() => {
@@ -142,7 +133,7 @@ export default function AdminPage() {
   // Changement : affichage du chargement
   if (loading) return <div className="max-w-3xl mx-auto p-10 text-center">Chargement du profil admin...</div>;
   if (error) return <div className="max-w-3xl mx-auto p-10 text-red-500">Erreur : {error}</div>;
-  if (!userProfile) return null;
+  if (!profile) return null;
 
   return (
     
@@ -210,7 +201,7 @@ export default function AdminPage() {
                       <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <span className="m-auto text-4xl font-bold text-white">
-                        {userProfile.username.substring(0, 1).toUpperCase()}
+                        {profile.username.substring(0, 1).toUpperCase()}
                       </span>
                     )}
                   </span>
@@ -224,7 +215,7 @@ export default function AdminPage() {
                     className="w-80 h-80 flex items-center justify-center text-7xl font-bold text-white rounded-[2em] shadow-2xl"
                     style={{ background: colorGradient }}
                   >
-                    {userProfile.username.substring(0, 1).toUpperCase()}
+                    {profile.username.substring(0, 1).toUpperCase()}
                   </div>
                 )}
               </DialogContent>
@@ -253,12 +244,19 @@ export default function AdminPage() {
       <div className="mt-16 px-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1 text-left">
-            <h1 className="text-2xl font-extrabold tracking-tight">{userProfile.username}</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">{profile.username}</h1>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold text-neutral-text-muted">L2 Informatique</span>
+              <span className="text-xs font-semibold text-neutral-text-muted">
+                {profile.classe?.name ?? "Classe non renseignée"}
+              </span>
               <Badge className="bg-yellow-600 hover:bg-yellow-600 text-[10px] h-5 rounded-full px-2 border-none">
-                {userProfile.role}
+                {getLabelRole(profile.role)}
               </Badge>
+              {profile.executive_role && (
+                <Badge className="bg-violet-600 hover:bg-violet-600 text-[10px] h-5 rounded-full px-2 border-none">
+                  {profile.executive_role.replace(/_/g, ' ')}
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -273,14 +271,14 @@ export default function AdminPage() {
         {/* bio et donnes */}
         <div className="mt-6 text-left space-y-3">
           <p className="text-sm text-neutral-text leading-relaxed max-w-2xl">
-            {userProfile.bio}
+            {profile.bio ?? "Aucune bio pour l'instant."}
           </p>
           <div className="flex gap-5 text-[11px] text-neutral-text-muted font-medium">
             <span className="flex items-center gap-1.5">
-              <MapPin size={13} className="text-primary/60" /> {userProfile.localisation || "Non renseignée"}
+              <MapPin size={13} className="text-primary/60" /> Togo
             </span>
             <span className="flex items-center gap-1.5">
-              <Calendar size={13} className="text-primary/60" /> Inscrit en {userProfile.dateCreation}
+              <Calendar size={13} className="text-primary/60" /> Inscrit en {new Date(profile.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
             </span>
           </div>
         </div>
@@ -307,7 +305,7 @@ export default function AdminPage() {
           <div className="flex flex-col gap-6">
             {adminPosts.length > 0 ? (
               adminPosts.map((post) => (
-                <OnePost key={post.id} post={post} avatarUrl={avatarPreview} />
+                <OnePost key={post.id} post={post} avatarUrl={avatarPreview || undefined} />
               ))
             ) : (
               <div className="py-20 text-center border-2 border-dashed border-muted rounded-xl">

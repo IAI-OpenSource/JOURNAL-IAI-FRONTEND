@@ -53,14 +53,17 @@ export function Connexion({ onSwitch }: ConnexionProps) {
     const validation = loginSchema.safeParse({ email, password });
 
     if (!validation.success) {
-      const firstError = validation.error.errors[0].message;
+      // Correction : utiliser validation.error.issues pour accéder aux erreurs
+      const firstError = validation.error.issues[0]?.message || "Erreur de validation";
       toast.error(firstError);
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Envoi requête OTP pour', email);
       const response = await authService.requestOtp(email, password);
+      console.log('Réponse reçue:', response);
       if (response.ok) {
         toast.success(response.result.message || "Code envoyé !");
         setStep(2);
@@ -68,8 +71,9 @@ export function Connexion({ onSwitch }: ConnexionProps) {
         toast.error(response.error || "Identifiants invalides");
       }
     } catch (err: any) {
+      console.error('Erreur complète:', err);
       // Extraction de l'erreur backend et personnalisé 
-      let errorMsg = err.response?.data?.error || "Erreur lors de la connexion";
+      let errorMsg = err.response?.data?.error || err.message || "Erreur lors de la connexion";
       if (typeof errorMsg === 'string') {
         errorMsg = errorMsg.replace(/OTP/gi, "code d'identification");
       }
@@ -228,7 +232,7 @@ export function Connexion({ onSwitch }: ConnexionProps) {
                 }}
                 className="text-sm text-muted-foreground hover:underline"
               >
-                ← Retour a la connection
+                Retour a la connection
               </button>
             </CardFooter>
           </Card>
