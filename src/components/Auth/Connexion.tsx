@@ -53,14 +53,17 @@ export function Connexion({ onSwitch }: ConnexionProps) {
     const validation = loginSchema.safeParse({ email, password });
 
     if (!validation.success) {
-      const firstError = validation.error.errors[0].message;
+      // Correction : utiliser validation.error.issues pour accéder aux erreurs
+      const firstError = validation.error.issues[0]?.message || "Erreur de validation";
       toast.error(firstError);
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Envoi requête OTP pour', email);
       const response = await authService.requestOtp(email, password);
+      console.log('Réponse reçue:', response);
       if (response.ok) {
         const successMsg = response.result?.message || "Code envoyé !";
         toast.success(successMsg);
@@ -233,7 +236,7 @@ export function Connexion({ onSwitch }: ConnexionProps) {
                 }}
                 className="text-sm text-muted-foreground hover:underline"
               >
-                ← Retour a la connection
+                Retour a la connection
               </button>
             </CardFooter>
           </Card>

@@ -21,11 +21,13 @@ import {
   User,
   Users,
   CalendarDays,
-  //Image,
   PlusSquare,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
+import { useEffect, useState } from "react";
+import { userService } from "@/services/userService";
+import type { ReadUser } from "@/types/user";
 
 interface NavItem {
   title: string;
@@ -46,8 +48,34 @@ const exploreItems: NavItem[] = [
 ];
 
 export default function AppSidebar() {
-  const { /*isMobile,*/ state } = useSidebar();
+  const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+
+  // État pour stocker les infos de l'utilisateur connecté
+  const [user, setUser] = useState<ReadUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Chargement du profil utilisateur au montage du composant
+  useEffect(() => {
+    userService
+      .getCurrentUser()
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error("Erreur chargement profil sidebar:", err);
+        // On laisse user à null, l'affichage utilisera les fallbacks
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Détermination des initiales pour l'avatar (fallback)
+  const initials = user
+    ? user.username.substring(0, 2).toUpperCase()
+    : "??";
+
+  // Texte de la classe à afficher
+  const classeDisplay = user?.classe?.name ?? "Classe non renseignée";
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -69,7 +97,6 @@ export default function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-
         <SidebarGroup>
           {!isCollapsed && (
             <SidebarGroupLabel className="text-xs uppercase text-muted-foreground/60 px-4 mb-1">
@@ -77,21 +104,32 @@ export default function AppSidebar() {
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? 'px-2 space-y-2' : ''}>
+            <SidebarMenu className={isCollapsed ? "px-2 space-y-2" : ""}>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={isCollapsed ? 'justify-center px-2' : ''}>
+                  <SidebarMenuButton
+                    asChild
+                    className={isCollapsed ? "justify-center px-2" : ""}
+                  >
                     <NavLink
                       to={item.url}
                       className={({ isActive }: { isActive: boolean }) =>
-                        `flex items-center ${isCollapsed ? 'justify-center px-2 py-2' : 'gap-3 px-4 py-2'} rounded-md text-sm font-medium transition-colors ${
+                        `flex items-center ${
+                          isCollapsed
+                            ? "justify-center px-2 py-2"
+                            : "gap-3 px-4 py-2"
+                        } rounded-md text-sm font-medium transition-colors ${
                           isActive
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                         }`
                       }
                     >
-                      <item.icon className={`${isCollapsed ? '!w-8 !h-8' : 'w-4 h-4'} shrink-0`} />
+                      <item.icon
+                        className={`${
+                          isCollapsed ? "!w-8 !h-8" : "w-4 h-4"
+                        } shrink-0`}
+                      />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -101,7 +139,6 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        
         <SidebarGroup className="mt-2">
           {!isCollapsed && (
             <SidebarGroupLabel className="text-xs uppercase text-muted-foreground/60 px-4 mb-1">
@@ -109,21 +146,32 @@ export default function AppSidebar() {
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? 'px-2 space-y-2' : ''}>
+            <SidebarMenu className={isCollapsed ? "px-2 space-y-2" : ""}>
               {exploreItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={isCollapsed ? 'justify-center px-2' : ''}>
+                  <SidebarMenuButton
+                    asChild
+                    className={isCollapsed ? "justify-center px-2" : ""}
+                  >
                     <NavLink
                       to={item.url}
                       className={({ isActive }: { isActive: boolean }) =>
-                        `flex items-center ${isCollapsed ? 'justify-center px-2 py-2' : 'gap-3 px-4 py-2'} rounded-md text-sm font-medium transition-colors ${
+                        `flex items-center ${
+                          isCollapsed
+                            ? "justify-center px-2 py-2"
+                            : "gap-3 px-4 py-2"
+                        } rounded-md text-sm font-medium transition-colors ${
                           isActive
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                         }`
                       }
                     >
-                      <item.icon className={`${isCollapsed ? '!w-8 !h-8' : 'w-4 h-4'} shrink-0`} />
+                      <item.icon
+                        className={`${
+                          isCollapsed ? "!w-8 !h-8" : "w-4 h-4"
+                        } shrink-0`}
+                      />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -133,43 +181,69 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        
-        <SidebarGroup className={`mt-4 ${isCollapsed ? 'px-2' : 'px-4'}`}>
+        <SidebarGroup className={`mt-4 ${isCollapsed ? "px-2" : "px-4"}`}>
           <Button
             asChild
             className={`w-full gap-2 bg-foreground text-background hover:bg-foreground/90 font-semibold ${
-              isCollapsed ? 'justify-center px-2' : ''
+              isCollapsed ? "justify-center px-2" : ""
             }`}
           >
-            <NavLink to="/creer-publication" className={isCollapsed ? 'flex justify-center p-2' : 'flex items-center gap-2'}>
-              <PlusSquare className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} />
+            <NavLink
+              to="/creer-publication"
+              className={
+                isCollapsed
+                  ? "flex justify-center p-2"
+                  : "flex items-center gap-2"
+              }
+            >
+              <PlusSquare
+                className={`${isCollapsed ? "w-6 h-6" : "w-4 h-4"}`}
+              />
               {!isCollapsed && "Créer une publication"}
             </NavLink>
           </Button>
         </SidebarGroup>
       </SidebarContent>
 
-      
-      <SidebarFooter className={`${isCollapsed ? 'px-2' : 'px-4'} py-4 border-t border-border`}>
-        <NavLink
-          to="/profil"
-          className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} rounded-md p-2 hover:bg-accent/50 transition-colors`}
-        >
-          <Avatar className="w-8 h-8">
-            <AvatarImage src="/avatar-placeholder.png" alt="marie.kouassi" />
-            <AvatarFallback className="bg-violet-200 text-violet-800 text-xs font-bold">
-              MK
-            </AvatarFallback>
-          </Avatar>
-          {!isCollapsed && (
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm font-semibold">marie.kouassi</span>
-              <span className="text-xs text-muted-foreground">L3 Informatique</span>
-            </div>
-          )}
-        </NavLink>
-      </SidebarFooter>
+      <SidebarFooter
+        className={`${
+          isCollapsed ? "px-2" : "px-4"
+        } py-4 border-t border-border`}
+      >
+        {loading ? (
 
+          <div className="flex items-center justify-center p-2">
+            <span className="text-xs text-muted-foreground">Chargement...</span>
+          </div>
+        ) : (
+          <NavLink
+            to="/profil"
+            className={`flex items-center ${
+              isCollapsed ? "justify-center" : "gap-3"
+            } rounded-md p-2 hover:bg-accent/50 transition-colors`}
+          >
+            <Avatar className="w-8 h-8">
+              <AvatarImage
+                src={user?.avatar_url || undefined}
+                alt={user?.username || "avatar"}
+              />
+              <AvatarFallback className="bg-violet-200 text-violet-800 text-xs font-bold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            {!isCollapsed && (
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm font-semibold">
+                  {user?.username ?? "Utilisateur"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {classeDisplay}
+                </span>
+              </div>
+            )}
+          </NavLink>
+        )}
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

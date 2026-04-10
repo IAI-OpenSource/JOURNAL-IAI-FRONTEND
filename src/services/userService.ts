@@ -6,27 +6,32 @@ export const userService = {
   // utilise pour AdminPage et UserPage
   getCurrentUser: async (): Promise<ReadUser> => {
     const res = await api.get<ApiBaseResponse<ReadUser>>("/v1/user/user-profil-data");
-    if (!res.data.success || !res.data.result) {
-      throw new Error(res.data.message ?? "Erreur recup profil");
+    // Le backend renvoie { ok: boolean, result: T, error: string | null }
+    // Plutôt que success. On s'adapte.
+    const data = res.data as any; 
+    if ((data.ok === true || data.success === true) && data.result) {
+      return data.result;
     }
-    return res.data.result;
+    throw new Error(data.message ?? data.error ?? "Erreur recup profil");
   },
 
   // GET /user/all tous les users (admin seulement)
   getAllUsers: async (): Promise<ReadUser[]> => {
     const res = await api.get<ApiBaseResponse<ReadUser[]>>("/v1/user/all");
-    if (!res.data.success || !res.data.result) {
-      throw new Error(res.data.message ?? "Erreur recup users");
+    const data = res.data as any;
+    if ((data.ok === true || data.success === true) && data.result) {
+      return data.result;
     }
-    return res.data.result;
+    throw new Error(data.message ?? data.error ?? "Erreur recup users");
   },
 
   // POST /user/update met a jour les infos de l'user connecte
   updateCurrentUser: async (data: UpdateUserData): Promise<string> => {
     const res = await api.post<ApiBaseResponse<string>>("/v1/user/update", data);
-    if (!res.data.success) {
-      throw new Error(res.data.message ?? "Erreur mise a jour profil");
+    const responseData = res.data as any;
+    if (responseData.ok === true || responseData.success === true) {
+      return responseData.message;
     }
-    return res.data.message;
+    throw new Error(responseData.message ?? responseData.error ?? "Erreur mise a jour profil");
   },
 };
