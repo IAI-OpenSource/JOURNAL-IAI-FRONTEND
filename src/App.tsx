@@ -10,12 +10,14 @@ import CreatePublicationPage from "./pages/CreatePublicationPage";
 
 import AdminPage from "./pages/AdminPage";
 import { AuthPage } from "./pages/AuthPage";
+import SidebarAdmin from "./pages/Admin/SidebarAdmin"
 
 export default function App() {
   return (
     <Routes>
       {/* Route pour l'authentification (sans la sidebar) */}
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/sidebarAdmin" element={<SidebarAdmin />} />
 
       {/* Routes principales (avec la sidebar via Layout) */}
       <Route path="/" element={<Layout />}>
