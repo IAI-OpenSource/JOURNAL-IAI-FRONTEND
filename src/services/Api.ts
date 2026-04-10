@@ -22,7 +22,7 @@ export default api;*/
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: '/api',  // relatif, passe par le proxy
+    baseURL: 'http://localhost:8000',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -31,7 +31,5 @@ const api = axios.create({
 
 /*vu que j'utilise le cookie j'ai supp l'intercepteur qui ajoutait Authorization, mais j'ai
 juste commenté la partie du haut juste pour tester chez moi avec */
-
-
 
 export default api;

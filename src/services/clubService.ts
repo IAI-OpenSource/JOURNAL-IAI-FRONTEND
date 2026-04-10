@@ -1,4 +1,4 @@
-import api from "@/types/Api";
+import api from "@/services/Api";
 import type { ApiBaseResponse } from "@/types/user";
 import type { ClubResponse, ClubsListResponse, ClubCreateRequest, ClubUpdateRequest } from "@/types/club";
 
@@ -60,3 +60,12 @@ export async function deleteClub(clubId: string): Promise<void> {
     throw new Error(res.data.message ?? "Erreur suppression club");
   }
 }
+
+export const clubService = {
+  getAllClubs,
+  getClubById,
+  getClubBySlug,
+  createClub,
+  updateClub,
+  deleteClub,
+};
