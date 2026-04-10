@@ -1,6 +1,8 @@
-import api from "@/services/Api";
-import type { ApiBaseResponse } from "@/types/user";
-import type { ClubResponse, ClubsListResponse, ClubCreateRequest, ClubUpdateRequest } from "@/types/club";
+
+import api from "./Api";
+import type { ApiBaseResponse } from "../types/user";
+import type { ClubResponse, ClubsListResponse, ClubCreateRequest, ClubUpdateRequest } from "../types/club";
+
 
 
 export async function getAllClubs(page = 1, pageSize = 20, isActive = false): Promise<ClubsListResponse> {

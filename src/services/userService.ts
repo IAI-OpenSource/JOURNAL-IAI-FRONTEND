@@ -1,5 +1,5 @@
-import api from "@/services/Api";
-import type { ApiBaseResponse, ReadUser, UpdateUserData } from "@/types/user";
+import api from "./Api";
+import type { ApiBaseResponse, ReadUser, UpdateUserData } from "../types/user";
 
 export const userService = {
   // GET /user/user-profil-data profil de l'user connecte

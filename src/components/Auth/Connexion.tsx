@@ -65,19 +65,21 @@ export function Connexion({ onSwitch }: ConnexionProps) {
       const response = await authService.requestOtp(email, password);
       console.log('Réponse reçue:', response);
       if (response.ok) {
-        toast.success(response.result.message || "Code envoyé !");
+        const successMsg = response.result?.message || "Code envoyé !";
+        toast.success(successMsg);
         setStep(2);
       } else {
-        toast.error(response.error || "Identifiants invalides");
+        const errorMsg = response.error || "Identifiants invalides.";
+        toast.error(errorMsg);
       }
     } catch (err: any) {
-      console.error('Erreur complète:', err);
-      // Extraction de l'erreur backend et personnalisé 
-      let errorMsg = err.response?.data?.error || err.message || "Erreur lors de la connexion";
-      if (typeof errorMsg === 'string') {
-        errorMsg = errorMsg.replace(/OTP/gi, "code d'identification");
-      }
-      toast.error(errorMsg);
+      const errorDetail = 
+        err.response?.data?.error || 
+        err.response?.data?.detail?.[0]?.msg || 
+        "Impossible de joindre le serveur.";
+        
+      let finalMsg = typeof errorDetail === 'string' ? errorDetail.replace(/OTP/gi, "code d'identification") : errorDetail;
+      toast.error(finalMsg);
     } finally {
       setLoading(false);
     }
@@ -91,8 +93,8 @@ export function Connexion({ onSwitch }: ConnexionProps) {
       const response = await authService.verifyOtp(email, parseInt(otp));
       if (response.ok) {
         toast.success("Connexion réussie !");
-        //a revoir pour gerer les roles 
-        navigate("/accueil");
+        // a revoir pour gerer les roles 
+        setTimeout(() => navigate("/accueil"), 1500);
       } else {
         let errMsg = response.error || "Code incorrect. Veuillez recommencer.";
         if (typeof errMsg === 'string') {
@@ -102,11 +104,13 @@ export function Connexion({ onSwitch }: ConnexionProps) {
         setOtp("");
       }
     } catch (err: any) {
-      let errorMsg = err.response?.data?.error || "Code invalide ou expiré";
-      if (typeof errorMsg === 'string') {
-        errorMsg = errorMsg.replace(/OTP/gi, "code d'identification");
-      }
-      toast.error(errorMsg);
+      const errorDetail = 
+        err.response?.data?.error || 
+        err.response?.data?.detail?.[0]?.msg || 
+        "Impossible de joindre le serveur.";
+        
+      let finalMsg = typeof errorDetail === 'string' ? errorDetail.replace(/OTP/gi, "code d'identification") : errorDetail;
+      toast.error(finalMsg);
       setOtp("");
     } finally {
       setLoading(false);
