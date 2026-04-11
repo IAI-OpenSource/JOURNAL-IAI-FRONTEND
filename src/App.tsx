@@ -5,7 +5,7 @@ import SearchPage from "./pages/SearchPage";
 import NotificationPage from "./pages/NotificationPage";
 import UserPage from "./pages/UserPage";
 import { EventsPage } from "./pages/EventsPage";
-// import ClubPage from "./pages/ClubPage";
+import ClubPage from "./pages/ClubPage";
 import CreatePublicationPage from "./pages/CreatePublicationPage";
 
 import AdminPage from "./pages/AdminPage";
@@ -27,7 +27,7 @@ export default function App() {
         <Route path="notifications" element={<NotificationPage />} />
         <Route path="profil" element={<UserPage />} />
         <Route path="evenements" element={<EventsPage />} />
-        {/* <Route path="clubs" element={<ClubPage />} /> */}
+        <Route path="clubs" element={<ClubPage />} />
         <Route path="creer-publication" element={<CreatePublicationPage />} />
         <Route path="admin" element={<AdminPage />} />
       </Route>
