@@ -1,4 +1,4 @@
-import api from '../types/Api';
+import api from './Api';
 import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../types/auth';
 
 export const authService = {

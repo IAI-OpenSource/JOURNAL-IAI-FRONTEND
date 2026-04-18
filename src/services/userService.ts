@@ -5,7 +5,7 @@ export const userService = {
   // GET /user/user-profil-data profil de l'user connecte
   // utilise pour AdminPage et UserPage
   getCurrentUser: async (): Promise<ReadUser> => {
-    const res = await api.get<ApiBaseResponse<ReadUser>>("/v1/user/user-profil-data");
+    const res = await api.get<ApiBaseResponse<ReadUser>>("/v1/user/me/user-profil-data");
     // Le backend renvoie { ok: boolean, result: T, error: string | null }
     // Plutôt que success. On s'adapte.
     const data = res.data as any; 

@@ -2,20 +2,18 @@ import  { useState } from "react";
 import { Link } from "react-router-dom";
 import { IoHomeSharp } from "react-icons/io5";
 import {
-  Plus,
-  Users,
   ChevronRight,
   ChevronLeft,
-  School,
-  GalleryHorizontalEnd,
-  History,
-  ChartPie,
-  LayoutDashboard, 
   ScrollText,
 } from "lucide-react";
 import { IoMdSchool } from "react-icons/io";
 import { GiToken } from "react-icons/gi";
 import { BiSolidDashboard } from "react-icons/bi";
+import { FaOpencart } from "react-icons/fa";
+import { useEffect } from "react";
+import { userService } from "@/services/userService";
+import type { ReadUser } from "@/types/user";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 interface ExpandedSections {
   AllAnnee: boolean;
   Classes: boolean;
@@ -32,6 +30,18 @@ function SidebarAdmin() {
     Classes: true,
     
   });
+
+  const [user, setUser] = useState<ReadUser | null>(null);
+
+  useEffect(() => {
+    userService.getCurrentUser()
+      .then(setUser)
+      .catch(() => setUser(null));
+  }, []);
+
+  const initials = user
+    ? user.username.substring(0, 2).toUpperCase()
+    : "??";
 
   const toggleSection = (sectionName: SectionName) => {
     setExpandedSections((prev) => ({
@@ -58,54 +68,51 @@ function SidebarAdmin() {
             onClick={() => handleCollapse(false)}
             className={`p-3  rounded-xl transition-all duration-500 shadow-sm`}
           >
-            <BiSolidDashboard className="w-6 h-6" />{" "}
+            <FaOpencart className="w-6 h-6" />{" "}
           </button> 
           
           <div className="flex-1 flex flex-col space-y-5 mt-8">
-
-            
-            <Link to="/general">
-
-          
-              <button
-                className={`p-3  rounded-xl transition-all duration-500 shadow-sm`}
-              >
-                <GalleryHorizontalEnd className="w-6 h-6" />
-               
+            {/* 1. Dashboard */}
+            <Link to="/admin/dashboard">
+              <button className={`p-3 rounded-xl transition-all duration-500 shadow-sm`}>
+                <BiSolidDashboard className="w-6 h-6" />
               </button>
-             
             </Link>
            
-            <button
-              className={`p-3 rounded-xl transition-all duration-500 shadow-sm`}
-            >
-               <School className="w-6 h-6" />
-            </button>
-            
-            <button
-              className={`p-3 rounded-xl  transition-all duration-500 shadow-sm`}
-            >
-               <History className="w-6 h-6" />
-            </button>
-          
+            {/* 2. Accueil */}
+            <Link to="/accueil">
+              <button className={`p-3 rounded-xl transition-all duration-500 shadow-sm`}>
+                <IoHomeSharp className="w-6 h-6" />
+              </button>
+            </Link>
+
+            {/* 3. Année Académique */}
+            <Link to="/annees-academiques">
+              <button className={`p-3 rounded-xl transition-all duration-500 shadow-sm`}>
+                <GiToken className="w-6 h-6" />
+              </button>
+            </Link>
+
+            {/* 4. Liste des Classes */}
+            <Link to="/classeListe">
+              <button className={`p-3 rounded-xl transition-all duration-500 shadow-sm`}>
+                <IoMdSchool className="w-6 h-6" />
+              </button>
+            </Link>
           </div>
         
           <div className="flex flex-col space-y-5">
-           
-           
-           
-            <button
-              className={`p-3 rounded-xl transition-all duration-500 shadow-sm`}
-            >
-               <ChartPie className="w-6 h-6" />
-            </button>
-            
-             <button
-              className={`p-3 rounded-xl transition-all duration-500 shadow-sm`}
-            >
-            <Users className="w-6 h-6" />
-            </button>
-          
+            {/* Utilisateur - Profil */}
+            <Link to="/profil">
+              <button className={`p-1 rounded-full transition-all duration-500 shadow-sm overflow-hidden`}>
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={user?.avatar_url || undefined} alt={user?.username || "avatar"} />
+                  <AvatarFallback className="bg-violet-200 text-violet-800 text-xs font-bold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </Link>
           </div>
          
         </div>
@@ -140,23 +147,25 @@ function SidebarAdmin() {
            {/* Navigation */}
           <nav className="space-y-2">
             
-            <Link to="/general">
+            <Link to="/admin/dashboard">
              
               <button
                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-500 text-sm shadow-sm`}
               >
-                 <LayoutDashboard className="w-5 h-5" />
+                 <BiSolidDashboard className="w-5 h-5" />
                 <span>Tableau de bord</span>
               </button>
+            </Link>
 
+            <Link to="/accueil">
               <button
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg  transition-all duration-500 text-sm shadow-sm`}
             >
                <IoHomeSharp  className="w-5 h-5" />
               <span>Acceuil</span>
             </button>
-              
             </Link>
+              
             {/* Eleves */}
             <button
               onClick={() => toggleSection("Classes")}
@@ -189,29 +198,28 @@ function SidebarAdmin() {
             {expandedSections.Classes && (
               <div className="ml-8 mt-1 space-y-1">
                
-                <Link to="/AddElevesToSchool">
-                 
-                  <button
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-500 text-sm`}
-                  >
-                     <Plus className="w-4 h-4" />
-                    <span>Les élèves</span>
-                   
-                  </button>
-                  
-                </Link>
-                
-                <Link to="/GestionsDesEleves">
+                <Link to="/classeListe">
                   
                   <button
                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg  transition-all duration-500 text-sm`}
                   >
                     <ScrollText className="w-4 h-4" />
-                     <span>Gestions des Elèves</span>
-                 
+                     <span>Liste des Classes</span>
                   </button>
                   
                 </Link>
+                
+                {/* <Link to="/AddElevesToSchool">
+                 
+                  <button
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-500 text-sm`}
+                  >
+                     <Plus className="w-4 h-4" />
+                    <span>Inscrire des élèves</span>
+                   
+                  </button>
+                  
+                </Link> */}
                 
               </div>
             )}
@@ -225,7 +233,7 @@ function SidebarAdmin() {
                 <GiToken className="w-5 h-5" />
                
                 <span className="text-sm font-medium">
-                  Gestions des Jeton
+                  Années Académiques
                 </span>
                
               </div>
@@ -241,25 +249,15 @@ function SidebarAdmin() {
             {expandedSections.AllAnnee && (
               <div className="ml-8 mt-1 space-y-1">
                 
-                <Link to="/CreateAnnee">
+                {/* Le lien vers la création a été supprimé car la page Liste & Création gère déjà la création via un modal */}
                 
-                  <button
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg  transition-all duration-500 text-sm`}
-                  >
-                     <Plus className="w-4 h-4" />
-                    <span>Créer une année année </span>
-                  </button>
-                 
-                </Link>
-                
-                <Link to="/AllAnnee">
+                <Link to="/annees-academiques">
                   
                   <button
                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-500 text-sm`}
                   >
                     <ScrollText className="w-4 h-4" />
-                    <span>Liste des Années </span>
-                 
+                    <span>Liste & Création</span>
                   </button>
                  
                 </Link>
