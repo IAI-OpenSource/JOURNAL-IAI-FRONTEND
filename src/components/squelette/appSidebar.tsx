@@ -22,6 +22,7 @@ import {
   Users,
   CalendarDays,
   PlusSquare,
+  LayoutDashboard,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -35,13 +36,6 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const menuItems: NavItem[] = [
-  { title: "Accueil",       url: "/accueil",       icon: Home },
-  { title: "Rechercher",    url: "/rechercher",    icon: Search },
-  { title: "Notifications", url: "/notifications", icon: Bell },
-  { title: "Profil",        url: "/profil",        icon: User },
-];
-
 const exploreItems: NavItem[] = [
   { title: "Clubs",      url: "/clubs",      icon: Users },
   { title: "Événements", url: "/evenements", icon: CalendarDays },
@@ -51,11 +45,9 @@ export default function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  // État pour stocker les infos de l'utilisateur connecté
   const [user, setUser] = useState<ReadUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Chargement du profil utilisateur au montage du composant
   useEffect(() => {
     userService
       .getCurrentUser()
@@ -63,23 +55,39 @@ export default function AppSidebar() {
         setUser(data);
       })
       .catch((err) => {
-        console.error("Erreur chargement profil sidebar:", err);
-        // On laisse user à null, l'affichage utilisera les fallbacks
+        const status = err?.response?.status ?? err?.status;
+        if (status !== 401 && status !== 404) {
+          console.error("Erreur chargement profil sidebar:", err);
+        }
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // Détermination des initiales pour l'avatar (fallback)
+  // Détermination des items de menu dynamiques
+  const menuItems: NavItem[] = [
+    { title: "Accueil",       url: "/accueil",       icon: Home },
+  ];
+
+  // Si Admin, on insère le Dashboard juste après Accueil
+  if (user?.role === "ADMIN") {
+    menuItems.push({ title: "Tableau de bord", url: "/admin", icon: LayoutDashboard });
+  }
+
+  // Autres items standards
+  menuItems.push(
+    { title: "Rechercher",    url: "/rechercher",    icon: Search },
+    { title: "Notifications", url: "/notifications", icon: Bell },
+    { title: "Profil",        url: "/profil",        icon: User }
+  );
+
   const initials = user
     ? user.username.substring(0, 2).toUpperCase()
     : "??";
 
-  // Texte de la classe à afficher
   const classeDisplay = user?.classe?.name ?? "Classe non renseignée";
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
-      {/* ── Header ── */}
       <SidebarHeader className="px-4 pt-5 pb-4">
         <div className="flex items-start justify-between w-full gap-3">
           <div className="flex items-center gap-3">
@@ -211,7 +219,6 @@ export default function AppSidebar() {
         } py-4 border-t border-border`}
       >
         {loading ? (
-
           <div className="flex items-center justify-center p-2">
             <span className="text-xs text-muted-foreground">Chargement...</span>
           </div>

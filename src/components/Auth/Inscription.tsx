@@ -26,9 +26,6 @@ type InscriptionProps = {
 
 interface FormData {
   nomUtilisateur: string;
-  nom: string;
-  prenoms: string;
-  email: string;
   password: string;
 }
 
@@ -40,9 +37,6 @@ const passwordSchema = z.string().min(8, "Le mot de passe doit contenir au moins
 export function Inscription({ onSwitch }: InscriptionProps) {
   const [formData, setFormData] = useState<FormData>({
     nomUtilisateur: "",
-    nom: "",
-    prenoms: "",
-    email: "",
     password: "",
   });
 
@@ -75,11 +69,8 @@ export function Inscription({ onSwitch }: InscriptionProps) {
     try {
 
       const response = await authService.register({
-        email: formData.email,
         username: formData.nomUtilisateur,
         password: formData.password,
-        last_name: formData.nom,
-        first_name: formData.prenoms,
         jeton: jetonIdentification,
       });
 
@@ -133,21 +124,6 @@ export function Inscription({ onSwitch }: InscriptionProps) {
                     placeholder="Ex: iaitogo"
                     required
                   />
-                </div>
-
-                <div className="grid gap-1">
-                  <Label htmlFor="nom">Nom</Label>
-                  <Input id="nom" name="nom" value={formData.nom} onChange={handleChange} className="h-11" placeholder="Votre nom" required />
-                </div>
-
-                <div className="grid gap-1">
-                  <Label htmlFor="prenoms">Prénoms</Label>
-                  <Input id="prenoms" name="prenoms" value={formData.prenoms} onChange={handleChange} className="h-11" placeholder="Vos prénoms" required />
-                </div>
-
-                <div className="grid gap-1">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} className="h-11" placeholder="votre@email.com" required />
                 </div>
 
                 <div className="grid gap-1">
