@@ -5,7 +5,7 @@ import SearchPage from "./pages/SearchPage";
 import NotificationPage from "./pages/NotificationPage";
 import UserPage from "./pages/UserPage";
 import { EventsPage } from "./pages/EventsPage";
-// import ClubPage from "./pages/ClubPage";
+import ClubPage from "./pages/ClubPage";
 import CreatePublicationPage from "./pages/CreatePublicationPage";
 import AdminPage from "./pages/AdminPage";
 import { AuthPage } from "./pages/AuthPage";
