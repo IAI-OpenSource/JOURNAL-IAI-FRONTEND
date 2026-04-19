@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App.tsx'
+import { AuthProvider } from '@/context/AuthContext'
 import { Toaster } from "sonner"
 
 const queryClient = new QueryClient()
@@ -12,9 +13,12 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <App />
-        {/* a ne pas toucher  */}
-        <Toaster position="top-right" />
+        {/* AuthProvider doit etre dans BrowserRouter car useAuth peut utiliser navigate */}
+        <AuthProvider>
+          <App />
+          {/* a ne pas toucher  */}
+          <Toaster position="top-right" />
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
