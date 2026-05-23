@@ -74,12 +74,17 @@ export function ClasseListe() {
   const fetchClasses = async () => {
     setLoading(true);
     try {
-      const [classResponse, yearResponse, usersResponse, registrationsResponse] = await Promise.all([
+      const results = await Promise.allSettled([
         Admin.getAllClasses(),
         Admin.getAllAcademicYears(),
         Admin.getAllUsers(),
         registrationService.getAll()
       ]);
+
+      const classResponse = results[0].status === 'fulfilled' ? results[0].value : { ok: false, result: { classes: [] } };
+      const yearResponse = results[1].status === 'fulfilled' ? results[1].value : { ok: false, result: { years: [] } };
+      const usersResponse = results[2].status === 'fulfilled' ? results[2].value : { ok: false, result: [] };
+      const registrationsResponse = results[3].status === 'fulfilled' ? results[3].value : { ok: false, result: [] };
       
       if (yearResponse && yearResponse.ok) {
         const yearsMap: Record<string, string> = {};

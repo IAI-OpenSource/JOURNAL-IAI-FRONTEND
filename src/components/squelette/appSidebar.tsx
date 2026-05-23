@@ -1,19 +1,5 @@
 import { NavLink } from "react-router-dom";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-  SidebarTrigger,
-  useSidebar,
-} from "../ui/sidebar";
+import { useSidebar } from "../ui/sidebar";
 import {
   Home,
   Search,
@@ -23,9 +9,9 @@ import {
   CalendarDays,
   PlusSquare,
   LayoutDashboard,
+  ChevronRight,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/userService";
 import type { ReadUser } from "@/types/user";
@@ -42,11 +28,10 @@ const exploreItems: NavItem[] = [
 ];
 
 export default function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
 
   const [user, setUser] = useState<ReadUser | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     userService
@@ -59,8 +44,7 @@ export default function AppSidebar() {
         if (status !== 401 && status !== 404) {
           console.error("Erreur chargement profil sidebar:", err);
         }
-      })
-      .finally(() => setLoading(false));
+      });
   }, []);
 
   // Détermination des items de menu dynamiques
@@ -87,171 +71,160 @@ export default function AppSidebar() {
   const classeDisplay = user?.classe?.name ?? "Classe non renseignée";
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
-      <SidebarHeader className="px-4 pt-5 pb-4">
-        <div className="flex items-start justify-between w-full gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-sm">J</span>
-            </div>
-            {!isCollapsed && (
-              <span className="font-semibold text-base tracking-tight">
+    <div className="flex h-screen bg-transparent z-50">
+      {isCollapsed ? (
+        <div className="w-20 rounded-3xl m-4 p-4 flex flex-col items-center shadow-lg bg-white transition-all duration-500 h-[calc(100vh-2rem)] justify-between">
+          <div className="flex flex-col items-center space-y-6 w-full">
+            {/* Logo statique */}
+          <div className="w-10 h-10 rounded-lg bg-violet-600 flex items-center justify-center shrink-0 shadow-sm">
+            <span className="text-white font-bold text-sm">J</span>
+          </div>
+
+          {/* Bouton d'ouverture très visible */}
+          <button
+            onClick={toggleSidebar}
+            className="p-2.5 rounded-xl transition-all duration-500 bg-amber-400 hover:bg-amber-500 text-gray-900 border border-amber-300 hover:border-amber-400 shadow-sm flex items-center justify-center cursor-pointer transform hover:scale-105 active:scale-95"
+            title="Ouvrir la sidebar"
+          >
+            <ChevronRight className="w-5 h-5 font-bold" />
+          </button>
+          
+          <div className="flex-1 flex flex-col space-y-5 mt-8 w-full items-center">
+            {menuItems.map((item) => (
+              <NavLink key={item.title} to={item.url}>
+                {({ isActive }) => (
+                  <button className={`p-3 rounded-xl transition-all duration-500 shadow-sm ${isActive ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <item.icon className="w-6 h-6" />
+                  </button>
+                )}
+              </NavLink>
+            ))}
+            
+            <div className="w-full h-px bg-gray-200 my-2" />
+            
+            {exploreItems.map((item) => (
+              <NavLink key={item.title} to={item.url}>
+                {({ isActive }) => (
+                  <button className={`p-3 rounded-xl transition-all duration-500 shadow-sm ${isActive ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <item.icon className="w-6 h-6" />
+                  </button>
+                )}
+              </NavLink>
+            ))}
+          </div>
+          </div>
+
+          <div className="flex flex-col space-y-5 items-center mt-auto w-full">
+            <NavLink to="/creer-publication">
+              <button className="p-3 rounded-xl transition-all duration-500 shadow-sm bg-black text-white hover:bg-gray-800">
+                <PlusSquare className="w-6 h-6" />
+              </button>
+            </NavLink>
+            <NavLink to="/profil">
+              <button className="p-1 rounded-full transition-all duration-500 shadow-sm overflow-hidden hover:opacity-80">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={user?.avatar_url || undefined} alt={user?.username || "avatar"} />
+                  <AvatarFallback className="bg-violet-200 text-violet-800 text-xs font-bold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </NavLink>
+          </div>
+        </div>
+      ) : (
+        <div className="w-80 rounded-3xl m-4 p-6 overflow-y-auto relative shadow-2xl bg-white transition-all duration-500 flex flex-col justify-between h-[calc(100vh-2rem)]">
+          <div className="flex-1 flex flex-col">
+            {/* Header */}
+          <div className="flex items-center justify-between mb-10 shrink-0">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center shrink-0 shadow-sm">
+                <span className="text-white font-bold text-sm">J</span>
+              </div>
+              <span className="font-semibold text-base tracking-tight text-gray-900">
                 Journal IAI
               </span>
-            )}
-          </div>
-          <SidebarTrigger className="mt-1" />
-        </div>
-      </SidebarHeader>
-
-      <SidebarContent>
-        <SidebarGroup>
-          {!isCollapsed && (
-            <SidebarGroupLabel className="text-xs uppercase text-muted-foreground/60 px-4 mb-1">
-              Menu
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? "px-2 space-y-2" : ""}>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    className={isCollapsed ? "justify-center px-2" : ""}
-                  >
-                    <NavLink
-                      to={item.url}
-                      className={({ isActive }: { isActive: boolean }) =>
-                        `flex items-center ${
-                          isCollapsed
-                            ? "justify-center px-2 py-2"
-                            : "gap-3 px-4 py-2"
-                        } rounded-md text-sm font-medium transition-colors ${
-                          isActive
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-                        }`
-                      }
-                    >
-                      <item.icon
-                        className={`${
-                          isCollapsed ? "!w-8 !h-8" : "w-4 h-4"
-                        } shrink-0`}
-                      />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className="mt-2">
-          {!isCollapsed && (
-            <SidebarGroupLabel className="text-xs uppercase text-muted-foreground/60 px-4 mb-1">
-              Explorer
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? "px-2 space-y-2" : ""}>
-              {exploreItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    className={isCollapsed ? "justify-center px-2" : ""}
-                  >
-                    <NavLink
-                      to={item.url}
-                      className={({ isActive }: { isActive: boolean }) =>
-                        `flex items-center ${
-                          isCollapsed
-                            ? "justify-center px-2 py-2"
-                            : "gap-3 px-4 py-2"
-                        } rounded-md text-sm font-medium transition-colors ${
-                          isActive
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-                        }`
-                      }
-                    >
-                      <item.icon
-                        className={`${
-                          isCollapsed ? "!w-8 !h-8" : "w-4 h-4"
-                        } shrink-0`}
-                      />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className={`mt-4 ${isCollapsed ? "px-2" : "px-4"}`}>
-          <Button
-            asChild
-            className={`w-full gap-2 bg-foreground text-background hover:bg-foreground/90 font-semibold ${
-              isCollapsed ? "justify-center px-2" : ""
-            }`}
-          >
-            <NavLink
-              to="/creer-publication"
-              className={
-                isCollapsed
-                  ? "flex justify-center p-2"
-                  : "flex items-center gap-2"
-              }
+            </div>
+            
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg transition-all duration-500 hover:bg-gray-100 text-gray-600 cursor-pointer"
             >
-              <PlusSquare
-                className={`${isCollapsed ? "w-6 h-6" : "w-4 h-4"}`}
-              />
-              {!isCollapsed && "Créer une publication"}
-            </NavLink>
-          </Button>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter
-        className={`${
-          isCollapsed ? "px-2" : "px-4"
-        } py-4 border-t border-border`}
-      >
-        {loading ? (
-          <div className="flex items-center justify-center p-2">
-            <span className="text-xs text-muted-foreground">Chargement...</span>
+               <span className="sr-only">Toggle Sidebar</span>
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
           </div>
-        ) : (
-          <NavLink
-            to="/profil"
-            className={`flex items-center ${
-              isCollapsed ? "justify-center" : "gap-3"
-            } rounded-md p-2 hover:bg-accent/50 transition-colors`}
-          >
-            <Avatar className="w-8 h-8">
-              <AvatarImage
-                src={user?.avatar_url || undefined}
-                alt={user?.username || "avatar"}
-              />
-              <AvatarFallback className="bg-violet-200 text-violet-800 text-xs font-bold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            {!isCollapsed && (
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm font-semibold">
-                  {user?.username ?? "Utilisateur"}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {classeDisplay}
-                </span>
-              </div>
-            )}
-          </NavLink>
-        )}
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+
+          {/* Navigation */}
+          <nav className="space-y-2 flex-1">
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">Menu</div>
+            
+            {menuItems.map((item) => (
+              <NavLink key={item.title} to={item.url}>
+                {({ isActive }) => (
+                  <button
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-500 text-sm shadow-sm mb-2 ${
+                      isActive ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="font-medium">{item.title}</span>
+                  </button>
+                )}
+              </NavLink>
+            ))}
+
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-8 mb-3 px-2">Explorer</div>
+            
+            {exploreItems.map((item) => (
+              <NavLink key={item.title} to={item.url}>
+                {({ isActive }) => (
+                  <button
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-500 text-sm shadow-sm mb-2 ${
+                      isActive ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="font-medium">{item.title}</span>
+                  </button>
+                )}
+              </NavLink>
+            ))}
+            </nav>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="mt-6 space-y-4 shrink-0">
+            <NavLink to="/creer-publication">
+              <button className="w-full flex items-center justify-center space-x-2 px-3 py-3 rounded-lg transition-all duration-500 text-sm shadow-sm bg-black text-white hover:bg-gray-800 font-semibold">
+                <PlusSquare className="w-5 h-5" />
+                <span>Créer une publication</span>
+              </button>
+            </NavLink>
+
+            <div className="pt-4 border-t border-gray-100">
+              <NavLink to="/profil">
+                <button className="w-full flex items-center space-x-3 px-2 py-2 rounded-lg transition-all duration-500 hover:bg-gray-100">
+                  <Avatar className="w-10 h-10 shadow-sm border border-gray-100">
+                    <AvatarImage src={user?.avatar_url || undefined} alt={user?.username || "avatar"} />
+                    <AvatarFallback className="bg-violet-200 text-violet-800 text-xs font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col text-left">
+                    <span className="text-sm font-semibold text-gray-900 leading-tight">
+                      {user?.username ?? "Utilisateur"}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {classeDisplay}
+                    </span>
+                  </div>
+                </button>
+              </NavLink>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

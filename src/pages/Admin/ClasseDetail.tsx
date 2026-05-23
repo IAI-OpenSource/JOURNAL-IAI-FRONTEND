@@ -213,7 +213,7 @@ export const ClasseDetail: React.FC = () => {
       const res = await Admin.deleteClasse(id);
       if (res.ok) {
         toast.success("Classe supprimée avec succès");
-        navigate("/admin/classes/");
+        navigate("/classeListe");
       } else {
         toast.error(res.error || "Erreur lors de la suppression");
       }
@@ -267,7 +267,7 @@ export const ClasseDetail: React.FC = () => {
             toast.success("Importation terminée avec succès !");
             setImportTaskId(null); 
             setImporting(false);
-            setIsImportModalOpen(false);
+            setIsJetonModalOpen(false);
             fetchData();
             clearInterval(interval);
           } 
@@ -329,7 +329,7 @@ export const ClasseDetail: React.FC = () => {
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={() => navigate("/admin/classes/")}
+            onClick={() => navigate("/classeListe")}
             className="rounded-full hover:bg-gray-100"
           >
             <ArrowLeft className="h-4 w-4" />
