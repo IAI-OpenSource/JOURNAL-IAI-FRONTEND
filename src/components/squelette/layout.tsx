@@ -101,11 +101,10 @@ export default function Layout() {
 
   // layout normal
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-screen overflow-hidden">
       <AppSidebar />
       <SidebarInset
-        className="flex-1 min-h-screen overflow-y-auto bg-background"
-        style={{ marginLeft: "16rem" }}
+        className="flex-1 h-full overflow-y-auto bg-background"
       >
         <main className="h-full p-0">
           <Outlet />

@@ -30,17 +30,21 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [classRes, usersRes, regRes, activeYearRes] = await Promise.all([
+      const results = await Promise.allSettled([
         Admin.getAllClasses(),
         Admin.getAllUsers(),
         registrationService.getAll(),
         Admin.getActiveAcademicYear()
       ]);
 
-      if (classRes.ok && usersRes.ok && regRes.ok) {
-        const classes = classRes.result.classes;
-        const users = usersRes.result;
-        const registrations = regRes.result;
+      const classRes = results[0].status === 'fulfilled' ? results[0].value : { ok: false, result: { classes: [] } };
+      const usersRes = results[1].status === 'fulfilled' ? results[1].value : { ok: false, result: [] };
+      const regRes = results[2].status === 'fulfilled' ? results[2].value : { ok: false, result: [] };
+      const activeYearRes = results[3].status === 'fulfilled' ? results[3].value : { ok: false, result: { libelle: "Erreur/Non défini" } };
+
+      const classes = classRes?.result?.classes || [];
+      const users = usersRes?.result || [];
+      const registrations = regRes?.result || [];
 
         const studentRoles = ["STUDENT", "DELEGATE", "CLUB_LEADER", "EXECUTIVE_MEMBER"];
 
@@ -54,7 +58,7 @@ export default function AdminDashboard() {
           totalClasses: classes.length,
           activeYear: activeYearRes?.ok ? activeYearRes.result.libelle : "N/A"
         });
-      }
+
     } catch (error) {
       console.error("Erreur Dashboard:", error);
       toast.error("Impossible de charger les statistiques");

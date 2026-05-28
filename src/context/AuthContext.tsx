@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { userService } from '@/services/userService';
 import type { ReadUser } from '@/types/user';
 
@@ -7,6 +7,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   // En mode mock 
   enableMock: () => void;
 }
@@ -23,7 +24,7 @@ const MOCK_USER: ReadUser = {
   bio: 'Développeur en test ah comment prendre pour faire ',
   avatar_url: null,
   sexe: 'M' as any,
-  classe: { id: 'mock-class', name: 'L2 Génie Logiciel' },
+  classe: { id: 'mock-class', name: 'L2 Génie Logiciel' as any },
   role: 'ADMIN',
   executive_role: null,
   can_post: true,
@@ -49,6 +50,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('isAuthenticated', 'true');
   };
 
+  const refreshUser = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const userData = await userService.getCurrentUser();
+      setUser(userData);
+      localStorage.setItem('isAuthenticated', 'true');
+    } catch (error) {
+      console.error('Non authentifié:', error);
+      setUser(null);
+      localStorage.removeItem('isAuthenticated');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const loadUser = async () => {
       if (isMockEnabledByEnv || useMock) {
@@ -60,21 +76,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Sinon leger on charge le profill
-      try {
-        const userData = await userService.getCurrentUser();
-        setUser(userData);
-        localStorage.setItem('isAuthenticated', 'true');
-      } catch (error) {
-        console.error('Non authentifié:', error);
-        setUser(null);
-        localStorage.removeItem('isAuthenticated');
-      } finally {
-        setIsLoading(false);
-      }
+      await refreshUser();
     };
 
     loadUser();
-  }, [isMockEnabledByEnv, useMock]);
+  }, [isMockEnabledByEnv, useMock, refreshUser]);
 
   const logout = () => {
     setUser(null);
@@ -87,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     isAuthenticated: !!user,
     logout,
+    refreshUser,
     enableMock,
   };
 

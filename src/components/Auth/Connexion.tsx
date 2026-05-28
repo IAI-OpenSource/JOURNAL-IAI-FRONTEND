@@ -22,6 +22,7 @@ import { authService } from "../../services/Auth";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { useAuth } from "../../context/AuthContext";
 
 // définition du schéma de validation
 const loginSchema = z.object({
@@ -45,6 +46,7 @@ export function Connexion({ onSwitch }: ConnexionProps) {
   const [otp, setOtp] = useState("");
 
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,8 +95,10 @@ export function Connexion({ onSwitch }: ConnexionProps) {
       const response = await authService.verifyOtp(email, parseInt(otp));
       if (response.ok) {
         toast.success("Connexion réussie !");
-        // a revoir pour gerer les roles 
-        setTimeout(() => navigate("/accueil"), 1500);
+        // Re-charger l'utilisateur connecté dans le contexte
+        await refreshUser();
+        // Redirige vers la racine et laisse le layout décider de la bonne destination selon le rôle
+        setTimeout(() => navigate("/", { replace: true }), 1500);
       } else {
         let errMsg = response.error || "Code incorrect. Veuillez recommencer.";
         if (typeof errMsg === 'string') {

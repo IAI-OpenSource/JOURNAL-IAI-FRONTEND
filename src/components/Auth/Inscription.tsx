@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +9,7 @@ import { authService } from "../../services/Auth";
 import { z } from "zod"; 
 import { GrValidate } from "react-icons/gr";
 import { MdOutlinePersonOutline } from "react-icons/md";
+import { useAuth } from "../../context/AuthContext";
 
 import {
   Card,
@@ -35,6 +37,8 @@ interface FormData {
 const passwordSchema = z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères");
 
 export function Inscription({ onSwitch }: InscriptionProps) {
+  const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     nomUtilisateur: "",
     password: "",
@@ -80,8 +84,13 @@ export function Inscription({ onSwitch }: InscriptionProps) {
         
         setStep(1);
         
-       
-        setTimeout(() => onSwitch(), 2000);
+        try {
+          await refreshUser();
+        } catch (e) {
+          console.warn("L'inscription n'a pas connecté l'utilisateur automatiquement :", e);
+        }
+        
+        setTimeout(() => navigate("/", { replace: true }), 2000);
       } else {
         const errorMsg = response.error || "Une erreur est survenue.";
         toast.error(errorMsg);
