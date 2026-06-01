@@ -1,5 +1,8 @@
-export type EventStatus = "BROUILLON" | "PUBLIE" | "EN COURS" |"TERMINE" | "ANNULE";
+import type { EventStatus } from "./enums"; //Nouveau
 
+/*
+* Interface pour les données d'un événement
+*/
 export interface EventData {
     id: string;
     title: string;

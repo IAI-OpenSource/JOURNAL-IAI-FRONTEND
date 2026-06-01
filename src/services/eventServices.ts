@@ -1,5 +1,6 @@
 import api from "@/services/Api";
-import type { EventStatus, PaginatedResult, EventData } from "@/types/event";
+import type { PaginatedResult, EventData } from "@/types/event";
+import type { EventStatus } from "@/types/enums";
 import type { ApiBaseResponse } from "@/types/user";
 
 // Récupérer les événements avec pagination
