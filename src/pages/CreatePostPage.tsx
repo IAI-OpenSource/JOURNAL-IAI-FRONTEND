@@ -18,6 +18,10 @@ import { toast } from "sonner";
 import { userService } from "@/services/userService";
 import { postService } from "@/services/postServices";
 import type { ReadUser } from "../types/user";
+import { clubService } from "@/services/clubService";
+import { eventService } from "@/services/eventServices";
+import type { ClubResponse } from "../types/club";
+import type { EventData } from "../types/event";
 
 type PostContextType = "GENERAL" | "CLUB" | "EVENT";
 
@@ -29,15 +33,29 @@ export default function CreatePostPage() {
   const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
   const [postContext, setPostContext] = useState<PostContextType>("GENERAL");
   
+  const [clubs, setClubs] = useState<ClubResponse[]>([]);
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<string>("");
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  //utilisateur acteur
   useEffect(() => {
     userService.getCurrentUser()
       .then(setUser)
       .catch(() => toast.error("Impossible de charger votre profil"));
   }, []);
 
+  useEffect(() => {
+    if (user && !user.can_post) {
+      toast.error("Vous n'avez pas l'autorisation de publier sur cette plateforme.");
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  
   useEffect(() => {
     return () => {
       selectedImages.forEach(img => URL.revokeObjectURL(img.preview));
@@ -50,6 +68,28 @@ export default function CreatePostPage() {
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [content]);
+
+  //chargement club et event
+  useEffect(() => {
+  // On ne charge les contextes que si l'utilisateur est bien défini
+    if (!user) return;
+
+    const loadContexts = async () => {
+      try {
+        const [clubListRes, eventList] = await Promise.all([
+          clubService.getAllClubs(1, 100),
+          eventService.getEventsByStatus("PUBLISHED")
+        ]);
+
+        setClubs(clubListRes.clubs || []);
+        setEvents(eventList);
+      } catch (e) {
+        toast.error("Impossible de charger les options.");
+      }
+    };
+
+    loadContexts();
+  }, [user]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -77,6 +117,14 @@ export default function CreatePostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error("Vous devez être connecté pour publier.");
+      return;
+    }
+    if (!user.can_post) {
+      toast.error("Vous n'avez pas l'autorisation de publier sur cette plateforme.");
+      return;
+    }
     if (!content.trim() && selectedImages.length === 0) {
       toast.error("Votre publication ne peut pas être vide.");
       return;
@@ -84,25 +132,40 @@ export default function CreatePostPage() {
 
     setIsSubmitting(true);
 
-    // Construction de la base du payload selon la doc d'API
-    // NOTE: Remplace les chaînes d'IDs fixes ci-dessous par la vraie sélection de ton UI si applicable
+    if (postContext === "CLUB") {
+      if (user.role !== "CLUB_LEADER" && user.role !== "ADMIN") {
+        toast.error("Seul un club leader ou un administrateur peut poster dans un club.");
+        setIsSubmitting(false);
+        return;
+      }
+      if (!selectedClubId) {
+        toast.error("Veuillez sélectionner un club pour votre publication.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+    if (postContext === "EVENT" && !selectedEventId) {
+      toast.error("Veuillez sélectionner un événement pour votre publication.");
+      setIsSubmitting(false);
+      return;
+    }
+
     const basePayload = {
       content: content.trim(),
-      club_id: postContext === "CLUB" ? "37075f18-9ac9-4298-acac-03d82cbc40e2" : null,
-      event_id: postContext === "EVENT" ? "a7a26ff2-e851-45b6-9634-d595f45458b7" : null,
+      club_id: postContext === "CLUB" ? selectedClubId : null,
+      event_id: postContext === "EVENT" ? selectedEventId : null,
       for_current_academic_year: true, 
-      only_for_a_class: false // À passer à true uniquement si le user est délégué et cible sa classe
+      only_for_a_class: false
     };
 
     try {
       if (selectedImages.length === 0) {
-        // CAS 1 : Post simple sans média
+        // Post textuel seulement
         await postService.createSimplePost(basePayload);
         toast.success("Publication partagée avec succès !");
         navigate("/");
       } else {
-        // CAS 2 : Post avec médias
-        // Préparation de la liste des métadonnées des fichiers pour l'intent
+        // Post avec médias
         const filesPayload = selectedImages.map(img => ({
           filename: img.file.name,
           content_type: img.file.type,
@@ -116,7 +179,7 @@ export default function CreatePostPage() {
 
         const { intent_id, files: backendFiles } = intentRes;
 
-        // Upload physique en utilisant "upload_url" imbriqué selon la réponse JSON du backend
+        // Upload physique 
         const uploadPromises = selectedImages.map((img, index) => {
           const targetUrl = backendFiles[index]?.upload_url;
           if (!targetUrl) throw new Error(`Pas d'URL d'upload générée pour l'image ${index + 1}`);
@@ -133,7 +196,7 @@ export default function CreatePostPage() {
 
         await Promise.all(uploadPromises);
 
-        // Confirmation finale
+        
         await postService.completeMediaPost(intent_id);
         toast.success("Publication avec médias réussie !");
         navigate("/");
@@ -185,13 +248,15 @@ export default function CreatePostPage() {
             >
               Tout le monde
             </button>
-            <button 
-              type="button"
-              onClick={() => setPostContext("CLUB")}
-              className={`text-[11px] px-3 py-1 rounded-full border transition-colors font-medium ${postContext === "CLUB" ? "bg-secondary-default/10 border-secondary-default text-secondary-default" : "border-border text-neutral-text-muted hover:bg-muted"}`}
-            >
-              <Users className="w-3 h-3 inline mr-1" /> Club
-            </button>
+            {(user.role === "CLUB_LEADER" || user.role === "ADMIN") && (
+              <button 
+                type="button"
+                onClick={() => setPostContext("CLUB")}
+                className={`text-[11px] px-3 py-1 rounded-full border transition-colors font-medium ${postContext === "CLUB" ? "bg-secondary-default/10 border-secondary-default text-secondary-default" : "border-border text-neutral-text-muted hover:bg-muted"}`}
+              >
+                <Users className="w-3 h-3 inline mr-1" /> Club
+              </button>
+            )}
             <button 
               type="button"
               onClick={() => setPostContext("EVENT")}
@@ -200,6 +265,45 @@ export default function CreatePostPage() {
               <Calendar className="w-3 h-3 inline mr-1" /> Événement
             </button>
           </div>
+
+          {/* Listes de sélection dynamiques */}
+          {postContext === "CLUB" && clubs.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="club-select" className="text-xs font-semibold text-neutral-text-muted">Publier dans le club :</label>
+              <select
+                id="club-select"
+                value={selectedClubId}
+                onChange={(e) => setSelectedClubId(e.target.value)}
+                className="w-full max-w-xs bg-background border border-border rounded-md px-3 py-1.5 text-sm text-neutral-text outline-none focus:border-primary-default transition-colors"
+              >
+                <option value="">-- Choisir un club --</option>
+                {clubs.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {postContext === "EVENT" && events.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="event-select" className="text-xs font-semibold text-neutral-text-muted">Associer à l'événement :</label>
+              <select
+                id="event-select"
+                value={selectedEventId}
+                onChange={(e) => setSelectedEventId(e.target.value)}
+                className="w-full max-w-xs bg-background border border-border rounded-md px-3 py-1.5 text-sm text-neutral-text outline-none focus:border-primary-default transition-colors"
+              >
+                <option value="">-- Choisir un événement --</option>
+                {events.map((ev) => (
+                  <option key={ev.id} value={ev.id}>
+                    {ev.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Éditeur */}
           <textarea

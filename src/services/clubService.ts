@@ -5,8 +5,7 @@ import type { ClubResponse, ClubsListResponse, ClubCreateRequest, ClubUpdateRequ
 
 
 
-export async function getAllClubs(page = 1, pageSize = 20, isActive = false): Promise<ClubsListResponse> {
-  // ajout du préfixe /v1 
+export async function getAllClubs(page = 1, pageSize = 20, isActive = false): Promise<ClubsListResponse> { 
   const res = await api.get<ApiBaseResponse<ClubsListResponse>>("/v1/clubs/", {
     params: { page, page_size: pageSize, is_active: isActive },
   });
@@ -25,7 +24,7 @@ export async function getClubById(clubId: string): Promise<ClubResponse> {
   return res.data.result;
 }
 
-// GET /clubs/slug/:slug  un club par son slug
+// un club par son slug
 export async function getClubBySlug(slug: string): Promise<ClubResponse> {
   // Changement : ajout du préfixe /v1
   const res = await api.get<ApiBaseResponse<ClubResponse>>(`/v1/clubs/slug/${slug}`);
@@ -35,7 +34,7 @@ export async function getClubBySlug(slug: string): Promise<ClubResponse> {
   return res.data.result;
 }
 
-// POST /clubs/  creer un club
+// creer un club
 export async function createClub(payload: ClubCreateRequest): Promise<ClubResponse> {
   // Changement : ajout du préfixe /v1
   const res = await api.post<ApiBaseResponse<ClubResponse>>("/v1/clubs/", payload);
@@ -45,7 +44,7 @@ export async function createClub(payload: ClubCreateRequest): Promise<ClubRespon
   return res.data.result;
 }
 
-// PUT /clubs/:id  mettre a jour un club
+//mettre a jour un club
 export async function updateClub(clubId: string, payload: ClubUpdateRequest): Promise<ClubResponse> {
   
   const res = await api.put<ApiBaseResponse<ClubResponse>>(`/v1/clubs/${clubId}`, payload);
@@ -55,7 +54,7 @@ export async function updateClub(clubId: string, payload: ClubUpdateRequest): Pr
   return res.data.result;
 }
 
-// DELETE /clubs/:id supprimer un club
+//supprimer un club
 export async function deleteClub(clubId: string): Promise<void> {
   const res = await api.delete<ApiBaseResponse<null>>(`/v1/clubs/${clubId}`);
   if (!res.data.success) {
