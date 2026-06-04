@@ -34,3 +34,6 @@ export type EventStatus =
   | "ONGOING"
   | "COMPLETED"
   | "CANCELLED";
+
+//Nouveau
+export type PostType = "TEXT" | "MEDIA" | "EVENT";

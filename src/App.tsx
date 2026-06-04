@@ -6,9 +6,11 @@ import NotificationPage from "./pages/NotificationPage";
 import UserPage from "./pages/UserPage";
 import { EventsPage } from "./pages/EventsPage";
 //import ClubPage from "./pages/ClubPage";
-import CreatePublicationPage from "./pages/CreatePublicationPage";
+// import CreatePublicationPage from "./pages/CreatePublicationPage";
 import AdminPage from "./pages/AdminPage";
 import { AuthPage } from "./pages/AuthPage";
+//New
+import CreatePostPage from "./pages/CreatePostPage";
 
 import { ClasseListe } from "./pages/Admin/ClasseListe";
 import { AcademicYearsList } from "./pages/Admin/AcademicYearsList";
@@ -39,7 +41,7 @@ export default function App() {
           <Route path="evenements" element={<EventsPage />} />
           <Route path="stories" element={<StoriesPage />} />
           {/* <Route path="clubs" element={<ClubPage />} /> */}
-          <Route path="creer-publication" element={<CreatePublicationPage />} />
+          <Route path="creer-publication" element={<CreatePostPage />} />
 
           {/* Zone Admin */}
           <Route path="admin/dashboard" element={<AdminDashboard />} />
